@@ -1,0 +1,11 @@
+{
+    "name":"jysperu/jcore",
+    "description" : "Núcleo/Framework ligero para PHP8+",
+    "type":"jcore-base",
+    "require": {
+        "jysperu/jcore-composer-installer": "*"
+    },
+   "license":[
+      "GPL-3.0-or-later"
+   ]
+}

@@ -5,6 +5,18 @@ Núcleo/Framework ligero para PHP8+
 
 ## Modos de Instalación
 
+#### — Descargando el pre-compilado
+
+*Paso 01.-* [Descargar la librería](https://github.com/jysperu/JCorePHP8/releases/latest/) y descomprimirlo en la carpeta pública
+
+*Paso 02.-* Añadir el archivo `index.php` dentro de la carpeta pública
+
+```php
+<?php
+define ('APPPATH', __DIR__);
+return require_once APPPATH . '/load.php';
+```
+
 #### — Via Composer
 
 *Paso 01.-* Requerir la librería
@@ -17,24 +29,10 @@ composer require jysperu/JCorePHP8
 
 ```php
 <?php
-define ('HOMEPATH', __DIR__);
+define ('APPPATH', __DIR__);
 require_once 'vendor/autoload.php';
-return JCore :: process();
+return JCore :: instance ();
 ```
-
-#### — Descargando el pre-compilado
-
-*Paso 01.-* [Descargar la librería](https://github.com/jysperu/JCorePHP8/releases/latest/) y descomprimirlo en la carpeta pública
-
-*Paso 02.-* Añadir el archivo `index.php` dentro de la carpeta pública
-
-```php
-<?php
-define ('HOMEPATH', __DIR__);
-return require_once HOMEPATH . '/process.php';
-```
-
-*Paso 03.-* Requerir dependencias del núcleo utilizando composer (`composer install`)
 
 ## Configuración del Servidor
 

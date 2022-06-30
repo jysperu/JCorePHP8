@@ -7,8 +7,8 @@
 defined('APPPATH') or exit(0); // Se requiere la ruta donde se encuentra la Aplicación
 
 /** Prevenir que no sea leído doble vez */
-if (function_exists('APP'))
-	return APP();
+if (class_exists('JCore', false))
+	return JCore :: getAPP();
 
 /** Autoload (Cargar componentes del JCore) */
 if ( ! function_exists('_autoload_JCore'))
@@ -36,14 +36,5 @@ if ( ! function_exists('_autoload_JCore'))
 
 spl_autoload_register('_autoload_JCore', true, true);
 
-/** APP() */
-if ( ! function_exists('APP'))
-{
-	function APP ()
-	{
-		return JCore :: instance ();
-	}
-}
-
 /** Procesar el Request */
-return APP ();
+return JCore :: getAPP();

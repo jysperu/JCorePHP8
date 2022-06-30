@@ -177,7 +177,7 @@ class Compiler
 	{
 		$JCore = JCore :: instance();
 
-		$json = [];
+		$json =& JCA :: $METADATA_COMPILED;
 		$json['$C'] = [
 			'B'	=> $COMPILER_BY ?? 'MANUALATTEMP',
 			'T' => filemtime(__FILE__),
@@ -312,12 +312,18 @@ class Compiler
 			return in_array($directory, $directories_with_files);
 		});
 		$AUTOLOAD_DIRS       = array_values($AUTOLOAD_DIRS);
+		$PREREQUESTS_CLASSES = array_keys($JCore :: $AUTOLOAD_ROUTES);
+		$PREREQUESTS_CLASSES = array_filter($PREREQUESTS_CLASSES, function ($clase) use ($AUTOLOAD_NAMESPACES) {
+			return isset($AUTOLOAD_NAMESPACES[$clase]);
+		});
+		$PREREQUESTS_CLASSES = array_values($PREREQUESTS_CLASSES);
 
 		$json['AUTOLOAD_NAMESPACES'] = $AUTOLOAD_NAMESPACES;
 		$json['AUTOLOAD_DIRS']       = $AUTOLOAD_DIRS;
 
+		$json['PREREQUESTS_CLASSES'] = $PREREQUESTS_CLASSES;
+
 		file_put_contents($file, json_encode($json));
-		JCA :: $METADATA_COMPILED = $json;
 
 		echo __FILE__ .'#'.__LINE__, '<br>';
 	}
@@ -348,7 +354,7 @@ class Compiler
 		}
 
 		$config_content = '';
-		$config_content.= '<?' . 'php' . '# Compilado el ' . date('d/m/Y h:i:s A') . PHP_EOL;
+		$config_content.= '<?' . 'php' . ' # Compilado el ' . date('d/m/Y h:i:s A') . PHP_EOL;
 		$config_content.= '' . PHP_EOL;
 		$config_content.= '$config = ' . '[];' . PHP_EOL;
 

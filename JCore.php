@@ -249,6 +249,12 @@ class JCore
 		return $_componentes[$component];
 	}
 
+	public static function getAPP ()
+	{
+			static :: instance();
+		return JCA :: instance();
+	}
+
 	//=================================================================================//
 	//==== DIRECTORIOS DE APLICACIÓN                                              =====//
 	//=================================================================================//

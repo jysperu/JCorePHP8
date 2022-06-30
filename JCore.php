@@ -10,8 +10,8 @@ use JCore\ComponenteTrait;
 use JCore\Controller\Directories as DirectoriesTrait;
 use JCore\Controller\Command 	 as CommandTrait;
 
-/** $JCore (Instancia Global) */
-$JCore = JCore :: instance();
+/** $JCore (Se la alojará la Instancia Global) */
+$JCore = null;
 
 /**
  * JCore
@@ -189,6 +189,9 @@ class JCore
 	 */
 	final protected function __construct ()
 	{
+		global $JCore;
+		$JCore = $this;
+
 		//=== Ejecutar la función JCoreInit si existe
 		if (function_exists('JCoreInit'))
 			JCoreInit ($this);
@@ -238,7 +241,7 @@ class JCore
 
 		if ( ! isset($_componentes[$component]))
 		{
-			$class = 'JCore' . BS . 'Module' . BS . $component;
+			$class = 'JCore' . BS . 'Component' . BS . $component;
 
 			if ( ! class_exists($class))
 			{

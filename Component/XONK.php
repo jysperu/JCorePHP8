@@ -1,10 +1,10 @@
 <?php
 /**
- * JCore/Module/XONK.php
+ * JCore/Component/XONK.php
  * @filesource
  */
 
-namespace JCore\Module;
+namespace JCore\Component;
 isset($JCore) or exit(0);
 defined('JCA_PATH') or exit(0); // Se requiere la ruta del JCore Compiled Aplication
 

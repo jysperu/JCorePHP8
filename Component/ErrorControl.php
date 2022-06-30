@@ -1,10 +1,10 @@
 <?php
 /**
- * JCore/Module/ErrorControl.php
+ * JCore/Component/ErrorControl.php
  * @filesource
  */
 
-namespace JCore\Module;
+namespace JCore\Component;
 isset($JCore) or exit(0); // Se requiere la ruta del JCore Compiled Aplication
 defined('JCA_PATH') or exit(0); // Se requiere la ruta del JCore Compiled Aplication
 

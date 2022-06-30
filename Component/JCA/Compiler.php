@@ -1,10 +1,10 @@
 <?php
 /**
- * JCore/Module/JCA/Compiler.php
+ * JCore/Component/JCA/Compiler.php
  * @filesource
  */
 
-namespace JCore\Module\JCA;
+namespace JCore\Component\JCA;
 isset($JCore) or exit(0);
 defined('JCA_PATH') or exit(0); // Se requiere la ruta del JCore Compiled Aplication
 

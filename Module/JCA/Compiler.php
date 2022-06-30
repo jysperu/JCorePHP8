@@ -5,16 +5,13 @@
  */
 
 namespace JCore\Module\JCA;
+isset($JCore) or exit(0);
 defined('JCA_PATH') or exit(0); // Se requiere la ruta del JCore Compiled Aplication
 
-use JCore\ComponenteTrait;
-use JCore as JCoreInstance;
 use JCore\JCA;
 use Exception;
-
+use JCore\ComponenteTrait;
 use JCore\Controller\Directories as DirectoriesTrait;
-
-use JCore\Helper\Array;
 
 /**
  * Compiler
@@ -71,11 +68,9 @@ class Compiler
 	use ComponenteTrait;
 	use DirectoriesTrait;
 
-	protected $JCore;
-
-	public function init (JCoreInstance $JCore)
+	public function init ()
 	{
-		$this -> JCore = $JCore;
+		global $JCore;
 
 	 	//=== Si no existe el archivo GENERAR ARCHIVO
 		if ($file = JCA :: METADATA_COMPILED and ! file_exists($file))
@@ -139,18 +134,17 @@ class Compiler
 	public function getInitialDirectories ():array
 	{
 		static $_dirs;
+		global $JCore;
 
 		isset($_dirs) or
-		$_dirs = $this
-				 -> JCore
-				 -> getDirectories();
+		$_dirs = $JCore :: getDirectories();
 
 		return $_dirs;
 	}
 
 	public function getAutoloadsNamespace ():array
 	{
-		$JCore = $this -> JCore;
+		global $JCore;
 
 		return array_merge (
 			(array) $JCore :: $AUTOLOAD_NAMESPACES,
@@ -167,14 +161,14 @@ class Compiler
 
 	public function getAutoloadsDirectories ():array
 	{
-		$JCore = $this -> JCore;
+		global $JCore;
 
 		return (array) $JCore :: $AUTOLOAD_DIRS;
 	}
 
 	public function getDirectoriesToCompile ():array
 	{
-		$JCore = $this -> JCore;
+		global $JCore;
 
 		return (array) $JCore :: $COMPILER_EXTRA_DIRS;
 	}
@@ -188,7 +182,7 @@ class Compiler
 			'S' => [microtime(true), memory_get_usage()],
 		];
 
-		$JCore = $this -> JCore;
+		global $JCore;
 
 		//=== Prevenir que el requests se caiga y no se complete la compilación
 		ignore_user_abort(true);
@@ -305,11 +299,9 @@ class Compiler
 			}
 		}
 
-		$this -> compilarConfig ($directories_1_999);
-			
+		//=== Compilar $config
+		$this -> _compilarConfig ($directories_1_999);
 
-		
-		
 		//=== Filtrando los autoloads que si tienen archivos en sus directorios
 		$directories_with_files = array_unique($directories_with_files);
 
@@ -324,12 +316,6 @@ class Compiler
 		$json['AUTOLOAD_NAMESPACES'] = $AUTOLOAD_NAMESPACES;
 		$json['AUTOLOAD_DIRS']       = $AUTOLOAD_DIRS;
 
-		
-		
-		
-		
-		
-		
 		file_put_contents($file, json_encode($json));
 		JCA :: $METADATA_COMPILED = $json;
 
@@ -364,7 +350,7 @@ class Compiler
 		$config_content = '';
 		$config_content.= '<?' . 'php' . '# Compilado el ' . date('d/m/Y h:i:s A') . PHP_EOL;
 		$config_content.= '' . PHP_EOL;
-		$config_content.= '$config = ' .  . PHP_EOL;
+		$config_content.= '$config = ' . '[];' . PHP_EOL;
 
 		$config_file = JCA_PATH . DS . 'configs' . DS . 'config.php';
 		mkdir(dirname($config_file), 0777, true);

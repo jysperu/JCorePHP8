@@ -5,9 +5,7 @@
  */
 
 namespace JCore;
-defined('APPPATH') or exit(0); // Se requiere la ruta del JCore Compiled Aplication
-
-use JCore as JCoreInstance;
+defined('APPPATH') or exit(0); // Acceso directo no autorizado
 
 trait ComponenteTrait
 {
@@ -16,16 +14,16 @@ trait ComponenteTrait
 	 * @static
 	 * @return JCore
 	 */
-	final public static function instance (JCoreInstance $JCoreInstance = null)
+	final public static function instance ()
 	{
 		static $_instance;
 
 		$_instance or 
-		$_instance = (new static ()) -> init ($JCoreInstance);
+		$_instance = (new static ()) -> init ();
 
 		return $_instance;
 	}
 
-	protected function init (JCoreInstance $JCore = null)
+	protected function init ()
 	{}
 }

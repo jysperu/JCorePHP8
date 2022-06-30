@@ -5,11 +5,11 @@
  */
 
 namespace JCore\Module\JCA;
+isset($JCore) or exit(0);
 defined('JCA_PATH') or exit(0); // Se requiere la ruta del JCore Compiled Aplication
 
-use JCore\ComponenteTrait;
-use JCore as JCoreInstance;
 use JCore\JCA;
+use JCore\ComponenteTrait;
 
 /**
  * Processor
@@ -67,7 +67,7 @@ class Processor
 {
 	use ComponenteTrait;
 
-	public function init (JCoreInstance $JCore)
+	public function init ()
 	{
 		//=== Corrigiendo directorio base cuando se ejecuta como comando
 		ISCOMMAND and

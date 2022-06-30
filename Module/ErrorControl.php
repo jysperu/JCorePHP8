@@ -5,10 +5,10 @@
  */
 
 namespace JCore\Module;
+isset($JCore) or exit(0); // Se requiere la ruta del JCore Compiled Aplication
 defined('JCA_PATH') or exit(0); // Se requiere la ruta del JCore Compiled Aplication
 
 use JCore\ComponenteTrait;
-use JCore as JCoreInstance;
 
 /**
  * ErrorControl
@@ -18,7 +18,7 @@ class ErrorControl
 {
 	use ComponenteTrait;
 
-	public function init (JCoreInstance $JCore)
+	public function init ()
 	{
 		//=== Registrar el control de errores
 //		ini_set('display_errors', 0);

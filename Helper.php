@@ -294,4 +294,123 @@ class Helper
 
 		return '';
 	}
+
+	/**
+	 * grouping
+	 */
+	public static function grouping ($array, $opts=[])
+	{
+		$opts = array_merge([
+			'prefix' => [NULL, NULL, NULL],//Singular, Plural, Zero
+			'suffix' => [NULL, NULL, NULL],//Singular, Plural, Zero
+			'union' => [', ', ' y '],//normal, last
+		], $opts);
+		if(is_string($array)){$array=[$array];}
+		$array = array_unique($array);
+
+		$r = '';
+		$c = count($array);
+		$t = 2;//Zero
+			if($c==0){$t=2;}
+		elseif($c==1){$t=0;}
+		elseif($c>=2){$t=1;}
+
+		if(is_string($opts['prefix'])) $opts['prefix'] = [$opts['prefix']];
+		if(!isset($opts['prefix'][2]) or is_null($opts['prefix'][2])){$opts['prefix'][2] = $opts['prefix'][0];}
+		if(!isset($opts['prefix'][1]) or is_null($opts['prefix'][1])){$opts['prefix'][1] = $opts['prefix'][0];}
+
+		if(is_string($opts['suffix'])) $opts['suffix'] = [$opts['suffix']];
+		if(!isset($opts['suffix'][2]) or is_null($opts['suffix'][2])){$opts['suffix'][2] = $opts['suffix'][0];}
+		if(!isset($opts['suffix'][1]) or is_null($opts['suffix'][1])){$opts['suffix'][1] = $opts['suffix'][0];}
+
+		if(is_string($opts['union'])) $opts['union'] = [$opts['union']];
+		if(is_null($opts['union'][0])) $opts['union'][0] = ' ';
+		if(!isset($opts['union'][1]) or is_null($opts['union'][1])){$opts['union'][1] = $opts['union'][0];}
+
+		$r.=$opts['prefix'][$t];
+
+			if($c==0){}
+		elseif($c==1){$r.=$array[0];}
+		elseif($c>=2){
+			$last = array_pop($array);
+			$r.=implode($opts['union'][0], $array);
+			$r.=$opts['union'][1].$last;
+		}
+
+		$r.=$opts['suffix'][$t];
+		return $r;
+	}
+
+	/**
+	 * arraySearch
+	 */
+	public static function arraySearch ($array, $filter_val, $filter_field = NULL, $return_field = NULL)
+	{
+		$obj = [];
+
+		if (is_null($filter_field))
+		{
+			$obj = array_search($filter_val, $array);
+		}
+		else
+		{
+			foreach($array as $arr)
+			{
+				if ($arr[$filter_field] == $filter_val)
+				{
+					$obj = $arr;
+				}
+			}
+		}
+
+		if (is_null($return_field))
+		{
+			return $obj;
+		}
+
+		isset($obj[$return_field]) or $obj[$return_field] = NULL;
+		return $obj[$return_field];
+	}
+
+	/**
+	 * Reduce Double Slashes
+	 *
+	 * Converts double slashes in a string to a single slash,
+	 * except those found in http://
+	 *
+	 * http://www.some-site.com//index.php
+	 *
+	 * becomes:
+	 *
+	 * http://www.some-site.com/index.php
+	 *
+	 * @param	string
+	 * @return	string
+	 */
+	public static function reduceDoubleSlashes($str)
+	{
+		return preg_replace('#(^|[^:])//+#', '\\1/', $str);
+	}
+
+	/**
+	 * Reduce Multiples
+	 *
+	 * Reduces multiple instances of a particular character.  Example:
+	 *
+	 * Fred, Bill,, Joe, Jimmy
+	 *
+	 * becomes:
+	 *
+	 * Fred, Bill, Joe, Jimmy
+	 *
+	 * @param	string
+	 * @param	string	the character you wish to reduce
+	 * @param	bool	TRUE/FALSE - whether to trim the character from the beginning/end
+	 * @return	string
+	 */
+	function reduceMultiples ($str, $character = ',', $trim = FALSE)
+	{
+		$str = preg_replace('#' . preg_quote($character, '#') . '{2,}#', $character, $str);
+		return ($trim === TRUE) ? trim($str, $character) : $str;
+	}
 }

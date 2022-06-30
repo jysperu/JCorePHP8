@@ -5,15 +5,13 @@
  */
 
 namespace JCore\Module;
+isset($JCore) or exit(0);
 defined('JCA_PATH') or exit(0); // Se requiere la ruta del JCore Compiled Aplication
 
 use JCore\ComponenteTrait;
-use JCore as JCoreInstance;
-
 use JCore\Controller\IP        as IpControlTrait;
 use JCore\Controller\UserAgent as UaControlTrait;
 use JCore\Controller\Crypt     as CryptTrait;
-
 use JCore\Helper\Random;
 
 /**
@@ -125,8 +123,10 @@ class XONK
 	use UaControlTrait;
 	use CryptTrait;
 
-	public function init (JCoreInstance $JCore)
+	public function init ()
 	{
+		global $JCore;
+
 		//=== Obtener la IP
 		static :: setIp(
 			static :: detectRequestIp()

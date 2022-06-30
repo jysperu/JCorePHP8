@@ -5,9 +5,9 @@
  */
 
 namespace JCore\Component;
-isset($JCore) or exit(0);
 defined('JCA_PATH') or exit(0); // Se requiere la ruta del JCore Compiled Aplication
 
+use JCore;
 use JCore\ComponenteTrait;
 
 class CacheManager
@@ -16,7 +16,7 @@ class CacheManager
 
 	public function init ()
 	{
-		global $JCore;
+		$JCore = JCore :: instance();
 
 		//== Establecer el directorio de cache por defecto
 		$cache_path = JCA_PATH . $JCore :: $DIR4_CACHE;

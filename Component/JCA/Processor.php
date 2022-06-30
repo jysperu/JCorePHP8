@@ -5,9 +5,9 @@
  */
 
 namespace JCore\Component\JCA;
-isset($JCore) or exit(0);
 defined('JCA_PATH') or exit(0); // Se requiere la ruta del JCore Compiled Aplication
 
+use JCore;
 use JCore\JCA;
 use JCore\ComponenteTrait;
 

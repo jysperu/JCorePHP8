@@ -10,9 +10,6 @@ use JCore\ComponenteTrait;
 use JCore\Controller\Directories as DirectoriesTrait;
 use JCore\Controller\Command 	 as CommandTrait;
 
-/** $JCore (Se la alojará la Instancia Global) */
-$JCore = null;
-
 /**
  * JCore
  *
@@ -189,9 +186,6 @@ class JCore
 	 */
 	final protected function __construct ()
 	{
-		global $JCore;
-		$JCore = $this;
-
 		//=== Ejecutar la función JCoreInit si existe
 		if (function_exists('JCoreInit'))
 			JCoreInit ($this);
@@ -227,10 +221,10 @@ class JCore
 	 */
 	protected function init():JCore
 	{
-		$this -> load ('XONK');          // WAF (Si es COMANDO no filtra las conecciones)
-		$this -> load ('ErrorControl');  // Control de Errores
-		$this -> load ('JCA\Compiler');  // Compila y lee la metadata del JCore Compiled Aplication (JCA)
-		$this -> load ('JCA\Processor'); // Procesa el requests usando el JCore Compiled Aplication (JCA)
+		$this -> load ('XONK');          # WAF (Si es COMANDO no filtra las conecciones)
+		$this -> load ('ErrorControl');  # Control de Errores
+		$this -> load ('JCA\Compiler');  # Compila y lee la metadata del JCore Compiled Aplication (JCA)
+		$this -> load ('JCA\Processor'); # Procesa el requests usando el JCore Compiled Aplication (JCA)
 
 		return $this;
 	}

@@ -18,8 +18,11 @@ trait ComponenteTrait
 	{
 		static $_instance;
 
-		$_instance or 
-		$_instance = (new static ()) -> init ();
+		if ( ! isset($_instance))
+		{
+			$_instance = new static ();
+			$_instance -> init ();
+		}
 
 		return $_instance;
 	}

@@ -5,9 +5,9 @@
  */
 
 namespace JCore\Component;
-isset($JCore) or exit(0); // Se requiere la ruta del JCore Compiled Aplication
 defined('JCA_PATH') or exit(0); // Se requiere la ruta del JCore Compiled Aplication
 
+use JCore;
 use JCore\ComponenteTrait;
 
 class SesionManager
@@ -16,7 +16,7 @@ class SesionManager
 
 	public function init ()
 	{
-		global $JCore;
+		$JCore = JCore :: instance();
 
 		//=== Iniciando la sesión
 		session_name( $JCore :: $SESSION_NAME );

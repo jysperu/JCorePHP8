@@ -5,9 +5,9 @@
  */
 
 namespace JCore\Component\JCA;
-isset($JCore) or exit(0);
 defined('JCA_PATH') or exit(0); // Se requiere la ruta del JCore Compiled Aplication
 
+use JCore;
 use JCore\JCA;
 use Exception;
 use JCore\ComponenteTrait;
@@ -70,7 +70,7 @@ class Compiler
 
 	public function init ()
 	{
-		global $JCore;
+		$JCore = JCore :: instance();
 
 	 	//=== Si no existe el archivo GENERAR ARCHIVO
 		if ($file = JCA :: METADATA_COMPILED and ! file_exists($file))
@@ -134,7 +134,7 @@ class Compiler
 	public function getInitialDirectories ():array
 	{
 		static $_dirs;
-		global $JCore;
+		$JCore = JCore :: instance();
 
 		isset($_dirs) or
 		$_dirs = $JCore :: getDirectories();
@@ -144,7 +144,7 @@ class Compiler
 
 	public function getAutoloadsNamespace ():array
 	{
-		global $JCore;
+		$JCore = JCore :: instance();
 
 		return array_merge (
 			(array) $JCore :: $AUTOLOAD_NAMESPACES,
@@ -161,28 +161,28 @@ class Compiler
 
 	public function getAutoloadsDirectories ():array
 	{
-		global $JCore;
+		$JCore = JCore :: instance();
 
 		return (array) $JCore :: $AUTOLOAD_DIRS;
 	}
 
 	public function getDirectoriesToCompile ():array
 	{
-		global $JCore;
+		$JCore = JCore :: instance();
 
 		return (array) $JCore :: $COMPILER_EXTRA_DIRS;
 	}
 
 	public function compilar (string $COMPILER_BY = null)
 	{
+		$JCore = JCore :: instance();
+
 		$json = [];
 		$json['$C'] = [
 			'B'	=> $COMPILER_BY ?? 'MANUALATTEMP',
 			'T' => filemtime(__FILE__),
 			'S' => [microtime(true), memory_get_usage()],
 		];
-
-		global $JCore;
 
 		//=== Prevenir que el requests se caiga y no se complete la compilación
 		ignore_user_abort(true);

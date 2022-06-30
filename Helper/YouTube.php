@@ -5,7 +5,7 @@
  */
 
 namespace JCore\Helper;
-defined('JCA_PATH') or exit(0); // Se requiere la ruta del JCore Compiled Aplication
+defined('APPPATH') or exit(0); // Acceso directo no autorizado
 
 class YouTube
 {

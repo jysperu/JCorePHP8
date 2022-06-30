@@ -5,7 +5,7 @@
  */
 
 namespace JCore\Controller;
-defined('APPPATH') or exit(0); // Se requiere la ruta donde se encuentra la Aplicación
+defined('APPPATH') or exit(0); // Acceso directo no autorizado
 
 use JCore\Helper\Random;
 use JCore\Model\Crypter as CrypterInterface;

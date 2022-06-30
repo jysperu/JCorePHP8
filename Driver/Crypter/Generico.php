@@ -1,7 +1,13 @@
 <?php
-namespace JCore\Driver\Crypter;
+/**
+ * JCore/Driver/Crypter/Generico.php
+ * @filesource
+ */
 
-use JCore\Interface\Crypter as CrypterInterface;
+namespace JCore\Driver\Crypter;
+defined('APPPATH') or exit(0); // Acceso directo no autorizado
+
+use JCore\Template\Crypter as CrypterInterface;
 
 use function openssl_encrypt;
 use function openssl_decrypt;

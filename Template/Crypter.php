@@ -1,5 +1,11 @@
 <?php
-namespace JCore\Interface;
+/**
+ * JCore/Template/Crypter.php
+ * @filesource
+ */
+
+namespace JCore\Template;
+defined('APPPATH') or exit(0); // Acceso directo no autorizado
 
 interface Crypter
 {

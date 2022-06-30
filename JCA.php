@@ -42,6 +42,30 @@ class JCA
 		return static :: $_URI;
 	}
 
+	protected static $_request_method;
+
+	public static function setRequestMethod (string $request_method)
+	{
+		static :: $_request_method = $request_method;
+	}
+
+	public static function getRequestMethod ()
+	{
+		return static :: $_request_method;
+	}
+
+	protected static $_response_type;
+
+	public static function setResponseType (string $response_type)
+	{
+		static :: $_response_type = $response_type;
+	}
+
+	public static function getResponseType ()
+	{
+		return static :: $_response_type;
+	}
+
 	public static function searchUriClass (string $namespace_base, string $uri = null)
 	{
 		$URI_CLASSES = static :: $METADATA_COMPILED['URI_CLASSES'];

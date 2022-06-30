@@ -146,56 +146,64 @@ class Processor
 
 		foreach ($PREREQUESTS_CLASSES as $namespace_base)
 		{
-			list($clase, $funcion, $parametros) = JCA :: searchUriClass ($namespace_base, $URI);
-
-			if (is_null($clase))
-				continue;
-
-			try
-			{
-				$_reflect  = new ReflectionClass($clase);
-				$instance = $_reflect -> newInstanceArgs($IDS);
-			}
-			catch(Exception $e)
-			{
-				// Class {Clase Llamada} does not have a constructor, so you cannot pass any constructor arguments
-				if ( ! preg_match('/does not have a constructor/i', $e->getMessage()))
-					throw $e;
-
-				$instance = new $clase();
-			}
-
-			if ($metodo = [$instance, $funcion] and ! is_callable($metodo))
-			{
-				continue;
-			}
-
-			call_user_func_array($metodo, $parametros);
+			$this -> executeUriClassFunction ($namespace_base);
 		}
 
-		
-		
-		/*
-		 * 08.	
-		 * 09.	
-		 * 10.	Ejecutar `ObjRoute\[namespace y clase basada en URI]` 	para comprobar la existencia de las IDs recibidas
-		 * 11.	Ejecutar `ReRoute\[namespace y clase basada en URI]` 	para modificar la URI por otra con el que se continúa el proceso
-		 *		Comprobar el WWW y el HTTPS aquí
-		 * 12.	Ejecutar `AlwRoute\[namespace y clase basada en URI]` 	para comprobar si el usuario requiere de permisos para el request solicitado
-		 * 13.	Ejecutar `PreRequest\[namespace y clase basada en URI]` para ejecutar alguna acción previo al proceso oficila del request
-		 * 14.	Ejecutar `Request\[namespace y clase basada en URI]` 	para ejecutar el proceso del Request
-		 * 15.	Si tipo de RESPONSE es diferente a 'BodyContent' y 'HTML' efectuar un `exit`
-		 * 16.	Ejecutar `Response\[namespace y clase basada en URI]` 	para retornar la pantalla HTML correspondiente al Request
-		 */
-		
-		echo '<pre>';
-		print_r(JCA :: $METADATA_COMPILED);
-		die('Esto procesara el request' . __FILE__ . '#' . __LINE__);
+		//=== Ejecutar `Request\[namespace y clase basada en URI]` 	para ejecutar el proceso del Request
+		$this -> executeUriClassFunction ('Request');
+
+		//=== Si tipo de RESPONSE es diferente a 'BodyContent' y 'HTML' efectuar un `exit`
+		if ( ! in_array(JCA :: getResponseType(), ['BodyContent', 'HTML']))
+			exit;
+
+		//=== Ejecutar `Response\[namespace y clase basada en URI]` 	para retornar la pantalla HTML correspondiente al Request
+		$this -> executeUriClassFunction ('Response');
+		exit;
 	}
 
-	public function _autoload (string $class)
+	public function executeUriClassFunction (string $namespace_base):bool
 	{
-		
+		list($clase, $funcion, $parametros) = JCA :: searchUriClass ($namespace_base);
+
+		if (is_null($clase))
+			return false;
+
+		try
+		{
+			$_reflect  = new ReflectionClass($clase);
+			$instance = $_reflect -> newInstanceArgs($IDS);
+		}
+		catch(Exception $e)
+		{
+			// Class {Clase Llamada} does not have a constructor, so you cannot pass any constructor arguments
+			if ( ! preg_match('/does not have a constructor/i', $e->getMessage()))
+				throw $e;
+
+			$instance = new $clase();
+		}
+
+		$request_method = mb_strtoupper(JCA :: getRequestMethod());
+		$response_type  = mb_strtoupper(JCA :: getResponseType());
+
+		foreach([$request_method . '_', ''] as $x)
+		{
+			foreach([$response_type . '_', ''] as $y)
+			{
+				if ($metodo = [$instance, $x . $y . $funcion] and is_callable($metodo))
+				{
+					call_user_func_array($metodo, $parametros);
+					return true;
+				}
+
+				if ($metodo = [$instance, $y . $x . $funcion] and is_callable($metodo))
+				{
+					call_user_func_array($metodo, $parametros);
+					return true;
+				}
+			}
+		}
+
+		return false; ## Se leyó la clase pero la función no ha sido encontrada
 	}
 
 	public function _autoload (string $class)

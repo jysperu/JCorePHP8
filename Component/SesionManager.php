@@ -10,6 +10,22 @@ defined('JCA_PATH') or exit(0); // Se requiere la ruta del JCore Compiled Aplica
 use JCore;
 use JCore\ComponenteTrait;
 
+	//=================================================================================//
+	//==== VARIABLES ESTÁTICAS — SesionManager                                    =====//
+	//=================================================================================//
+
+	/** $SESSION_NAME */
+//	public static $SESSION_NAME = 'JCore';
+
+	/**
+	 * $DIR4_SESSION
+	 * Directorio donde se alojarán los archivos de sesión
+	 *
+	 * Los $DIR4_X se encontrarán dentro de la carpeta JCA_PATH 
+	 * (añadir slash al inicio, omitirlo al final)
+	 */
+//	public static $DIR4_SESSION = '/tmpdata/sesiones';
+
 class SesionManager
 {
 	use ComponenteTrait;

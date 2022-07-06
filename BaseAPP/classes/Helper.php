@@ -1,11 +1,12 @@
 <?php
 /**
- * JCore/Helper.php
+ * APPPATH/classes/Helper.php
  * @filesource
  */
 
-namespace JCore;
-defined('JCA_PATH') or exit(0); // Se requiere la ruta del JCore Compiled Aplication
+defined('APPPATH') or exit(2); # Acceso directo no autorizado
+
+
 
 class Helper
 {
@@ -408,9 +409,22 @@ class Helper
 	 * @param	bool	TRUE/FALSE - whether to trim the character from the beginning/end
 	 * @return	string
 	 */
-	function reduceMultiples ($str, $character = ',', $trim = FALSE)
+	public static function reduceMultiples ($str, $character = ',', $trim = FALSE)
 	{
 		$str = preg_replace('#' . preg_quote($character, '#') . '{2,}#', $character, $str);
 		return ($trim === TRUE) ? trim($str, $character) : $str;
+	}
+
+	public static function isList (array $object)
+	{
+		if (count($object) === 0)
+			return null; # Null because there is no items to evaluate keys
+
+		$keys = array_keys($object);
+		$keys_non_numerics = array_filter($keys, function($key) {
+			return ! is_numeric($key);
+		});
+
+		return count($keys_non_numerics) === 0; # True if is List; false if is object and have keys non numeric
 	}
 }

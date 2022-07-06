@@ -7,6 +7,19 @@
 namespace JCore\Component;
 defined('JCA_PATH') or exit(0); // Se requiere la ruta del JCore Compiled Aplication
 
+	//=================================================================================//
+	//==== VARIABLES ESTÁTICAS — CacheManager                                     =====//
+	//=================================================================================//
+
+	/**
+	 * $DIR4_SESSION
+	 * Directorio donde se alojarán los archivos de cache
+	 *
+	 * Los $DIR4_X se encontrarán dentro de la carpeta JCA_PATH 
+	 * (añadir slash al inicio, omitirlo al final)
+	 */
+//	public static $DIR4_CACHE   = '/tmpdata/cache';
+
 use JCore;
 use JCore\ComponenteTrait;
 

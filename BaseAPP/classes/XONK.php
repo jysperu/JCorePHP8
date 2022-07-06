@@ -1,24 +1,41 @@
 <?php
 /**
- * JCore/Component/XONK.php
+ * APPPATH/classes/XONK.php
  * @filesource
  */
 
-namespace JCore\Component;
-defined('JCA_PATH') or exit(0); // Se requiere la ruta del JCore Compiled Aplication
+defined('APPPATH') or exit(2); # Acceso directo no autorizado
 
-use JCore;
-use JCore\ComponenteTrait;
-use JCore\Controller\IP        as IpControlTrait;
-use JCore\Controller\UserAgent as UaControlTrait;
-use JCore\Controller\Crypt     as CryptTrait;
-use JCore\Helper\Random;
+
+
+/**
+ * cookie4_device
+ * Establece la cookie de identificación de dispositivo
+ */
+defined('cookie4_device') or define('cookie4_device', 'cdkdsp');
+
+
 
 /**
  * XONK
- * Protege el Requests de posibles intentos de hackeo
- * Almacena la información en una base datos (sqlite3 o mongodb)
+ * Protege al sistema de potenciales intrusiones
+ * e intentos de hackeo bloqueando REQUEST malignos
  *
+ * > Se recomienda el almacenamiento de la información en una base datos mongodb o sqlite3
+ *
+ * Uso:
+ * XONK :: protect ();
+ *
+ * Funciones Estáticas Disponibles:
+ * getIP():string				Retorna la IP establecida en la clase
+ * setIP(string):void			Establecer una IP incluso si no es la detectada
+ * getRDns():string				Retorna el hostname de la IP
+ * setRDns(string):void			Establece un hostname para la IP
+ * getRDnsOfIP(string):string	Detecta el hostname de la IP enviada en el parámetro
+ * detectRequestIP():string		Detecta la IP del REQUEST
+ * getUa():string				Retorna el USER-AGENT establecida en la clase
+ * setUa(string):void			Establece  un USER-AGENT incluso si no es el detectado
+ * detectRequestUa():string		Detecta el USER-AGENT del REQUEST
  *
  * Acción Por Defecto Filtro IP:
  * Es la acción que debe considerarse por defecto al filtrar una IP
@@ -116,20 +133,18 @@ use JCore\Helper\Random;
  *
  * > EL bloqueo a ataques DOS es mediante Proxies como CloudFlare
  */
+
+use function gethostbyaddr;
+use function substr;
+use function in_array;
+
 class XONK
 {
-	use ComponenteTrait;
-	use IpControlTrait;
-	use UaControlTrait;
-	use CryptTrait;
-
-	public function init ()
+	public static function protect ()
 	{
-		$JCore = JCore :: instance();
-
 		//=== Obtener la IP
-		static :: setIp(
-			static :: detectRequestIp()
+		static :: setIP(
+			static :: detectRequestIP()
 		);
 
 		//=== Obtener el UserAgent
@@ -137,17 +152,27 @@ class XONK
 			static :: detectRequestUa()
 		);
 
+		//=== Establecer si el REQUEST es mediante comando
+		defined('ISCOMMAND') or define('ISCOMMAND', (substr(PHP_SAPI, 0, 3) === 'cli' ? 'cli' : defined('STDIN')));
+
 		//=== Si es comando entonces no filtra las conecciones
 		if (ISCOMMAND) # Constante definido en la clase JCore
 			return;
 
 		//=== Establecer la cookie de identificación de dispositivo
-		$cookie4_device = $JCore :: $COOKIE4_DEVICE;
-		defined('cookie4_device') or define('cookie4_device', $cookie4_device);
-
 		if ( ! isset($_COOKIE[cookie4_device]))
 		{
-			$_COOKIE[cookie4_device] = Random :: salt (
+			$_COOKIE[cookie4_device] = static :: _random();
+			setcookie(cookie4_device, $_COOKIE[cookie4_device], time() + (60 * 60 * 24 * 28 * 12 * 10), '/'); # 10 años
+		}
+
+		//=== Proceder con los filtros de protección
+	}
+
+	private static function _random ()
+	{
+		if (class_exists('Helper\Random'))
+			return \Helper\Random :: salt (
 				64      # digitos
 				, true  # min
 				, true  # may
@@ -157,7 +182,119 @@ class XONK
 				, false # spaces
 			);
 
-			setcookie(cookie4_device, $_COOKIE[cookie4_device], time() + (60 * 60 * 24 * 28 * 12 * 10), '/'); # 10 años
+		return uniqid(md5(__FILE__), true);
+	}
+
+
+	//=== Funciones de IP
+	protected static $_ip   = '';
+	protected static $_rdns = '';
+
+	public static function getIP ():string
+	{
+		return static :: $_ip;
+	}
+
+	public static function setIP (string $ip):void
+	{
+		static :: $_ip = $ip;
+        static :: setRDns (
+			static :: getRDnsOfIP($ip)
+		);
+	}
+
+	public static function getRDns ():string
+	{
+		return static :: $_rdns;
+	}
+
+	public static function getRDnsOfIP (string $ip):string
+	{
+		if (empty($ip))
+			return 'empty-ip';
+
+		if (in_array(substr($ip, 0, 8), ['192.168.', '127.0.']))
+			return 'localhost';
+
+		return gethostbyaddr($ip);
+	}
+
+	public static function setRDns (string $rdns):void
+	{
+		static :: $_rdns = $rdns;
+	}
+
+	public static function detectRequestIP ():string
+	{
+		static $ip_address = ''; # por defecto retornar vacío (NO DETECTADO)
+
+		if ( ! empty($ip_address))
+			return $ip_address;
+
+		$SERVER_ADDR = $_SERVER['SERVER_ADDR'];
+		$keys        = ['HTTP_X_FORWARDED_FOR', 'HTTP_X_REAL_IP', 'HTTP_X_CLIENT_IP', 'HTTP_X_CLUSTER_CLIENT_IP', 'HTTP_CLIENT_IP', 'REMOTE_ADDR', 'SERVER_ADDR'];
+
+		foreach ($keys as $key)
+		{
+			if ( ! isset($_SERVER[$key]))
+				continue; # No se encontró el valor
+
+			$val = $_SERVER[$key];
+
+			if (empty($val))
+				continue; # El valor está vacío
+
+			if ( ! filter_var($val, FILTER_VALIDATE_IP))
+				continue; # IP no válido (IPV4 o IPV6)
+
+			if ($val === $SERVER_ADDR)
+				continue; # IP es del servidor (probablemente proveniente por un proxy interno)
+
+			$ip_address = $val;
+			break;
 		}
+
+		return $ip_address;
+	}
+
+
+
+	//=== Funciones de USER-AGENT
+	protected static $_ua   = '';
+
+	public static function getUa ():string
+	{
+		return static :: $_ua;
+	}
+
+	public static function setUa (string $ua):void
+	{
+		static :: $_ua = $ua;
+	}
+
+	public static function detectRequestUa ():string
+	{
+		static $user_agent = ''; # por defecto retornar vacío (NO DETECTADO)
+
+		if ( ! empty($user_agent))
+			return $user_agent;
+
+		$keys = ['HTTP_X_USER_AGENT', 'HTTP_USER_AGENT'];
+
+		foreach ($keys as $key)
+		{
+			if ( ! isset($_SERVER[$key]))
+				continue; # No se encontró el valor
+
+			$val = $_SERVER[$key];
+
+			if (empty($val))
+				continue; # El valor está vacío
+
+			$user_agent = $val;
+			break;
+		}
+
+		return $user_agent;
 	}
 }

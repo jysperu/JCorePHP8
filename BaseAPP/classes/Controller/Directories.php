@@ -1,18 +1,22 @@
 <?php
 /**
- * JCore/Controller/Directories.php
+ * Controller/Directories.php
  * @filesource
  */
 
-namespace JCore\Controller;
+namespace Controller;
 defined('APPPATH') or exit(0); // Acceso directo no autorizado
 
 defined('DS') or define('DS', DIRECTORY_SEPARATOR);
 
 /**
- * Directories
+ * Controller\Directories
  *
- * regularizeDirectory():string
+ * Funciones Estáticas Disponibles:
+ * regularizeDirectory(string):string|null	La ruta devuelta tiene el formato correcto del directorio (Devuelve NULL en caso no exista el directorio)
+ * cleanDirectory(string, bool):bool		Limpia todos los archivos y directorios de una carpeta
+ * unlinkDirectory(string):bool				Elimina por completo un directorio
+ * copyDirectory(string, string, bool):int	Copia un directorio a otro destino
  */
 trait Directories
 {

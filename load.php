@@ -1,40 +1,53 @@
 <?php
 /**
- * load.php
+ * JCore/load.php
  * @filesource
  */
 
-defined('APPPATH') or exit(0); // Se requiere la ruta donde se encuentra la Aplicación
+/** HOMEPATH */
+defined('HOMEPATH') or exit(1);
 
-/** Prevenir que no sea leído doble vez */
-if (class_exists('JCore', false))
-	return JCore :: getAPP();
+/**
+ * SRCPATH
+ * Ruta donde se encuentra el código base de la aplicación
+ */
+defined('SRCPATH') or define ('SRCPATH', HOMEPATH);
 
-/** Autoload (Cargar componentes del JCore) */
-if ( ! function_exists('_autoload_JCore'))
+/**
+ * APPPATH
+ * Ruta donde se encuentra la Aplicación Compilada
+ * El contenido de este directorio alojará todos los archivos compilados desde el JCore
+ * por lo que inicialment debe encontrarse vacío.
+ * En cada compilación, todos los archivos son eliminados
+ */
+defined('APPPATH') or define ('APPPATH', SRCPATH . DIRECTORY_SEPARATOR . '$compiled');
+
+if (defined('_APPINDX'))
+	return; # Prevent Duplicate
+
+define ('_APPINDX', APPPATH . DIRECTORY_SEPARATOR . 'index.php');
+
+/**
+ * Leer Aplicación Compilada para procesar el REQUEST
+ * Si el sistema detecta que ya hay un index.php en el APPPATH entonces lo lee directamente
+ * ya que no requiere de la lectura del JCore para ser procesado.
+ * En caso no encontrarse aún el archivo; entonces, el JCore compilará la aplicación 
+ * en aquella ruta para que un siguiente REQUEST lea directamente el contenido compilado.
+ *
+ * > La aplicación compilada intentará actualizarse de manera asíncrona utilizando el JCore 
+ */
+if (file_exists(_APPINDX))
 {
-	function _autoload_JCore (string $class):void
-	{
-		static $_bs = '\\'; // BackSlash
-
-		$class = trim($class, $_bs);
-		$parts = explode($_bs, $class);
-
-		if ($parts[0] !== 'JCore')
-			return; // Next Autoload
-
-		if (count($parts) > 1)
-			array_shift($parts); # Quitar el JCore como directorio
-
-		$filename = __DIR__ . DS . implode(DS, $parts) . '.php';
-		if ( ! file_exists($filename))
-			return; // Next Autoload
-
-		require_once $filename;
-	}
+	return require_once _APPINDX;
 }
 
-spl_autoload_register('_autoload_JCore', true, true);
+/**
+ * Iniciar el compilador JCore
+ */
+chdir(__DIR__);
+require_once 'JCore.php';
+
+JCore :: compile();
 
 /** Procesar el Request */
-return JCore :: getAPP();
+return require_once _APPINDX;

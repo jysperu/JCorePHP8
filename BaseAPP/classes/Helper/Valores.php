@@ -1,10 +1,10 @@
 <?php
 /**
- * JCore/Helper/Valores.php
+ * Helper/Valores.php
  * @filesource
  */
 
-namespace JCore\Helper;
+namespace Helper;
 defined('APPPATH') or exit(0); // Acceso directo no autorizado
 
 class Valores

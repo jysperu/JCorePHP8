@@ -10,6 +10,7 @@ defined('JCA_PATH') or exit(0); // Se requiere la ruta del JCore Compiled Aplica
 use JCore;
 use JCore\JCA;
 use JCore\ComponenteTrait;
+use Process;
 
 /**
  * Processor
@@ -213,19 +214,20 @@ class Processor
 
 		if ( ! isset($_autoloads))
 		{
-			$METADATA = JCA :: $METADATA_COMPILED;
+			$METADATA   = JCA :: $METADATA_COMPILED;
 			$_autoloads = [
 				'namespaces'  => $METADATA['AUTOLOAD_NAMESPACES'],
 				'directories' => $METADATA['AUTOLOAD_DIRS'],
 			];
 		}
 
-		extract($METADATA);
+		extract($_autoloads);
 
 		$class = trim($class, $_bs);
 		$parts = explode($_bs, $class);
 
 		//=== Buscar por Namespace
+		if (isset($namespaces))
 		if (isset($namespaces[$parts[0]]))
 		{
 			$directory = $namespaces[$parts[0]];
@@ -239,7 +241,9 @@ class Processor
 			return;
 		}
 
+		//=== Buscar en Directories
 		$filename_base = DS . implode(DS, $parts) . '.php';
+		if (isset($directories))
 		foreach ($directories as $directory)
 		{
 			$filename = JCA_PATH . $directory . $filename_base;

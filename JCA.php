@@ -15,7 +15,7 @@ class JCA
 
 	public const PATH				= JCA_PATH;
 
-	public const METADATA_COMPILED	= JCA_PATH . DS . 'jca.metadata.json';
+	public const METADATA_COMPILED	= JCA_PATH . DS . 'jca.json';
 
 	public static $METADATA_COMPILED = [
 		'INITIAL_DIRECTORIES'	=> [], ## Directorios iniciales

@@ -1,10 +1,10 @@
 <?php
 /**
- * JCore/Controller/Crypt.php
+ * Controller/Crypt.php
  * @filesource
  */
 
-namespace JCore\Controller;
+namespace Controller;
 defined('APPPATH') or exit(0); // Acceso directo no autorizado
 
 use JCore\Helper\Random;

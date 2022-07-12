@@ -126,4 +126,40 @@ trait Directories
 
 		return $total_copias;
 	}
+
+	public static function getFilesOnDir (string $directorio):array
+	{
+		if ( ! file_exists($directorio) or ! is_dir($directorio))
+			return [];
+
+		$data = scandir($directorio);
+		$data = array_filter($data, function($o){
+			return ! in_array($o, ['.', '..']);
+		});
+		$data = array_values($data);
+
+		$data = array_map(function($o) use ($directorio) {
+			return $directorio . DS . $o;
+		}, $data);
+
+		$files = array_filter($data, function ($o) {
+			return ! is_dir($o);
+		});
+		$files = array_values($files);
+
+		$dirs = array_filter($data, function ($o) {
+			return is_dir($o);
+		});
+		$dirs = array_values($dirs);
+
+		foreach ($dirs as $dir)
+		{
+			$files = array_merge($files, static :: getFilesOnDir($dir));
+		}
+
+		$files = array_unique($files);
+		$files = array_values($files);
+
+		return $files;
+	}
 }

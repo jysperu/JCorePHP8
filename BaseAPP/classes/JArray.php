@@ -1,12 +1,19 @@
 <?php
 /**
- * classes/JArray.php
+ * APPPATH/classes/JArray.php
  * @filesource
  */
 
-defined('JCA_PATH') or exit(0); // Acceso directo no autorizado
+defined('APPPATH') or exit(0); // Acceso directo no autorizado
 
-class JArray
+class JArray extends ArrayObject
 {
-	
+	//////////////////////////////////////
+	/// Constructor del objeto         ///
+	//////////////////////////////////////
+	public function __construct($data = [], $callbacks = [])
+	{
+		parent::__construct ($data);
+		$this -> _callbacks = $callbacks;
+	}
 }

@@ -54,14 +54,18 @@ if ( ! function_exists('_autoload_JCore'))
  * JCore :: compile();
  */
 use JCore\JPart\Directories as DirectoriesPart;
+use JCore\JPart\Compilador  as CompiladorPart;
 
 class JCore
 {
 	use DirectoriesPart;
+	use CompiladorPart;
 
 	//=================================================================================//
 	//==== VARIABLES ESTÁTICAS — JCA\*                                            =====//
 	//=================================================================================//
+
+	public const JCA_json = APPPATH . DS . 'jca.json';
 
 	/**
 	 * $RECOMPILAR
@@ -155,22 +159,24 @@ class JCore
 	public static $COMPILER_EXTRA_DIRS = [];
 
 	//=================================================================================//
-	//==== CONSTRUCTORES                                                          =====//
+	//==== FUNCIONES DISPONIBLES                                                  =====//
 	//=================================================================================//
 
 	/**
 	 * init ()
 	 * Procesa el núcleo y el Request
 	 */
-	public static function compile()
+	public static function compile($by = null)
 	{
-		//=== Ejecutar la función JCoreInit si existe
-		if (function_exists('JCoreInit'))
-			JCoreInit ();
+		is_null ($by) and $by = static :: requiereCompilar();
 
 		//=== Registrar los directorios iniciales (El directorio del JCore no se registra)
 		static :: addDirectory (COREPATH, 1, 'COREPATH');
 		static :: addDirectory (SRCPATH, 999, 'SRCPATH');
+
+		//=== Ejecutar la función JCoreInit si existe
+		if (function_exists('JCoreInit'))
+			JCoreInit ();
 
 		//=== Restaurar el buffer de salida a 1
 		while (ob_get_level())
@@ -178,28 +184,139 @@ class JCore
 
 		ob_start();
 
-		die(__FILE__ . '#' . __LINE__);
-//		$JCore = static :: instance();
-//		$JCore -> load ('JCA\Compiler');
+		//=== Prevenir que el requests se caiga y no se complete la compilación
+		ignore_user_abort(true);
+		set_time_limit(0);
+
+		//=== Si no existe la carpeta crearla
+		file_exists(APPPATH) or
+		mkdir(APPPATH, 0777, true);
+
+		//=== Estableciendo el modo mantenimiento
+		static :: maintenance('<b>Compilando...</b><br>Se ha iniciado la compilación del JCA.', 10); # Máximo 10s
+
+		//=== Creando la variable donde alojara toda la metadata
+		$json = [];
+		$json['$C'] = [
+			'B'	=> $by,
+			'T' => filemtime(__FILE__),
+			'S' => [microtime(true), memory_get_usage()],
+			'E' => [microtime(true), memory_get_usage()],
+		];
+
+		//=== Añadiendo los atributos INITIAL_DIRECTORIES y MD5_INITDIRS
+		$json['INITIAL_DIRECTORIES'] = static :: getInitialDirectories ();
+		$json['MD5_INITDIRS']        = md5(json_encode($json['INITIAL_DIRECTORIES']));
+
+		//=== Recorrer todos los directorios en busqueda del archivo `load.php`
+		static :: compileLoads ();
+
+		//=== Establecer el atributo DIRECTORIES_NAMES
+		$json['DIRECTORIES_NAMES'] = static :: getDirectoriesLabels();
+
+		//=== Establecer el mtime de los directosios leídos
+		static :: compileDirectoriesMtime ($json);
+
+		//=== Considerando solo los verdaderos directorios que existen y son directorios
+		$directories_999_1 = array_keys($json['DIRECTORIES_MTIME']); # Directorios de mayor prioridad primero (Permite anticipar funciones)
+		$directories_1_999 = array_reverse($directories_999_1);      # Directorios de menor prioridad primero (Permite sobreescribir configuraciones o clases)
+
+		//=== Estableciendo el atributo MD5_JCORECNFG utilizando los datos originales de AUTOLOAD_NAMESPACES y AUTOLOAD_DIRS
+		$AUTOLOAD_NAMESPACES   = static :: getAutoloadsNamespace ();
+		$AUTOLOAD_DIRS		   = static :: getAutoloadsDirectories ();
+		$COMPILER_EXTRA_DIRS   = static :: getDirectoriesToCompile ();
+
+		$json['MD5_JCORECNFG'] = md5(json_encode([
+			$AUTOLOAD_NAMESPACES, 
+			$AUTOLOAD_DIRS, 
+			$COMPILER_EXTRA_DIRS,
+		]));
+
+		$AUTOLOAD_NAMESPACES_flip = array_flip  ($AUTOLOAD_NAMESPACES);
+		$AUTOLOAD_NAMESPACES_dirs = array_values($AUTOLOAD_NAMESPACES);
+
+		//=== Copiar todos los directorios
+		static :: compileDirectoriesCopy ($AUTOLOAD_NAMESPACES, $AUTOLOAD_DIRS, $COMPILER_EXTRA_DIRS, $AUTOLOAD_NAMESPACES_dirs, $directories_1_999);
+
+		$PREREQUESTS_CLASSES = array_keys(static :: $AUTOLOAD_ROUTES);
+		$PREREQUESTS_CLASSES = array_filter($PREREQUESTS_CLASSES, function ($clase) use ($AUTOLOAD_NAMESPACES) {
+			return isset($AUTOLOAD_NAMESPACES[$clase]);
+		});
+		$PREREQUESTS_CLASSES = array_values($PREREQUESTS_CLASSES);
+
+		$json['AUTOLOAD_NAMESPACES'] = $AUTOLOAD_NAMESPACES;
+		$json['PREREQUESTS_CLASSES'] = $PREREQUESTS_CLASSES;
+
+		static :: cleanDirectory (APPPATH . DS . 'configs');
+
+		//=== Compilar $config
+		static :: compileConfig ($directories_1_999);
+
+		//=== Compilar configs/init.php
+		static :: compileInit ($directories_1_999);
+
+		//=== Unir funciones en configs/functions.php (Todas las funciones deben tener if (function_exists) para preveneri errores)
+		static :: compileFunctions ($directories_999_1);
+
+		//=== Compilar composer.json
+		static :: compileComposer ($directories_1_999);
+
+		//=== Compilar index.php
+		static :: compileIndex ($json);
+
+		//=== Compilar Conecciones de Bases de Datos y sus Drivers
+		//=== (incluír la conección a la DB para el XONK y para el ErrorControl)
+		//
+
+
+		//=== Las funciones de base datos (sql y sql_data) utilizan el driver de la db principal
+		//
+
+		//== Guardando archivo de metadata
+		file_put_contents(static :: JCA_json, json_encode($json));
+
+		static :: maintenanceRemove();
 	}
 
-	public function load (string $component)
+	public static function maintenanceRemove ():void
 	{
-		static $_componentes = [];
+		if ( ! file_exists(APPPATH))
+			return;
 
-		if ( ! isset($_componentes[$component]))
+		$file = APPPATH . DS . 'maintenance.php';
+
+		if ( ! file_exists($file))
+			return;
+
+		@unlink($file);
+		return;
+	}
+
+	public static function maintenance ($html, int $segundos = null)
+	{
+		if ( ! file_exists(APPPATH))
+			return;
+
+		$file = APPPATH . DS . 'maintenance.php';
+		$content = '<?' . 'php' . PHP_EOL;
+		$content.= '# Setted at ' . date('Y-m-d h:i:s A') . PHP_EOL;
+
+		if ( ! is_null($segundos))
 		{
-			$class = 'JCore' . BS . 'Component' . BS . $component;
-
-			if ( ! class_exists($class))
-			{
-				trigger_error('Componente ' . $component . ' de JCore no encontrado.', E_USER_WARNING);
-				return;
-			}
-
-			$_componentes[$component] = $class :: instance ();
+			$time = time() + $segundos;
+			$content.= '$diff = ' . $time . ' - time();' . PHP_EOL;
+			$content.= 'if ($diff < 0)' . PHP_EOL;
+			$content.= '	@unlink(__FILE__);' . PHP_EOL;
 		}
 
-		return $_componentes[$component];
+		$content.= '?>' . PHP_EOL . $html;
+		$content.= '<?' . 'php echo \'<br><small>Tiempo Restante: \', (string) $diff, \'s</small><script>setTimeout(function(){location.reload()}, 750);</script>\';';
+
+		file_put_contents(APPPATH . DS . 'maintenance.php', $content);
+
+		if ( ! file_exists(APPPATH . DS . 'index.php'))
+		{
+			file_put_contents(APPPATH . DS . 'index.php', '<?' . 'php $maintenance = __DIR__ . \'/maintenance.php\'; if ( ! file_exists($maintenance)) { unlink(__FILE__); return; } require_once($maintenance);');
+		}
 	}
 }

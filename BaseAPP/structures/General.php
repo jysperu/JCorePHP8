@@ -1,7 +1,7 @@
 <?php
 namespace Structure;
 
-class General
+class General extends Base
 {
 	
 }

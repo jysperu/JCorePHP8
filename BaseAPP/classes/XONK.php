@@ -133,11 +133,6 @@ defined('cookie4_device') or define('cookie4_device', 'cdkdsp');
  *
  * > EL bloqueo a ataques DOS es mediante Proxies como CloudFlare
  */
-
-use function gethostbyaddr;
-use function substr;
-use function in_array;
-
 class XONK
 {
 	public static function protect ()
@@ -172,7 +167,7 @@ class XONK
 	private static function _random ()
 	{
 		if (class_exists('Helper\Random'))
-			return \Helper\Random :: salt (
+			return 'R' . \Helper\Random :: salt (
 				64      # digitos
 				, true  # min
 				, true  # may
@@ -182,7 +177,7 @@ class XONK
 				, false # spaces
 			);
 
-		return uniqid(md5(__FILE__), true);
+		return 'U' . uniqid(md5(__FILE__), true);
 	}
 
 
@@ -240,6 +235,7 @@ class XONK
 				continue; # No se encontró el valor
 
 			$val = $_SERVER[$key];
+			$val = str_replace('::ffff:', '', $val); # Some errors on engintron
 
 			if (empty($val))
 				continue; # El valor está vacío

@@ -415,16 +415,34 @@ class Helper
 		return ($trim === TRUE) ? trim($str, $character) : $str;
 	}
 
-	public static function isList (array $object)
+	public static function isList (array $object, bool $check_continues_index = false)
 	{
 		if (count($object) === 0)
 			return null; # Null because there is no items to evaluate keys
 
 		$keys = array_keys($object);
 		$keys_non_numerics = array_filter($keys, function($key) {
-			return ! is_numeric($key);
+			return ! preg_match('/^[0-9]+$/', $key); # solo números
 		});
 
-		return count($keys_non_numerics) === 0; # True if is List; false if is object and have keys non numeric
+		if (count($keys_non_numerics) > 0)
+			return false;
+
+		if ($check_continues_index)
+		{
+			sort($keys);
+			$siguiente = (int) $keys[0];
+
+			while(count($keys) > 0)
+			{
+				$key = (int) array_shift($keys);
+				if ($siguiente !== $key)
+					return false;
+
+				$siguiente++;
+			}
+		}
+
+		return true;
 	}
 }

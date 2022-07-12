@@ -1,7 +1,7 @@
 <?php
-namespace JCore;
+namespace JCore\JPart;
 
-use JCore\Helper;
+use Helper;
 
 class ComposerJSON 
 {

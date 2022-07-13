@@ -63,7 +63,7 @@ trait Directories
 				static :: cleanDirectory ($file_or_dir);
 
 				$delete_subdirs and 
-				@unlink ($file_or_dir);
+				@rmdir ($file_or_dir);
 			}
 
 			if (file_exists($file_or_dir) and ! is_dir($file_or_dir))
@@ -82,7 +82,7 @@ trait Directories
 		static :: cleanDirectory ($directorio, true);
 
 		//=== Eliminando la carpeta
-		@unlink ($directorio);
+		@rmdir ($directorio);
 
 		return true;
 	}

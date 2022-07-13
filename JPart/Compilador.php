@@ -6,10 +6,12 @@ use Phar;
 use JCore\JPart\ComposerJSON;
 use Symfony;
 use Composer;
-use Helper;
+use JCore\JPart\Helper as HelperTrait;
 
 trait Compilador
 {
+	use HelperTrait;
+
 	public static function requiereCompilar ():int
 	{
 		//=== Validar si existe el archivo JSON
@@ -99,6 +101,7 @@ trait Compilador
 				'Response'  => (string) static :: $AUTOLOAD_RESPONSE_DIR,
 				'Structure' => (string) static :: $AUTOLOAD_STRUCTURE_DIR,
 				'Process'   => (string) static :: $AUTOLOAD_PROCESSES_DIR,
+				'Driver'    => (string) static :: $AUTOLOAD_DRIVERS_DIR,
 			],
 
 			[]
@@ -278,11 +281,11 @@ trait Compilador
 		putenv('COMPOSER_HOME=' . $composer_dir);
 		require_once($composer_dir . DS . 'vendor' . DS . 'autoload.php');
 
-		file_exists(APPPATH . DS . 'vendor') and 
-		static :: unlinkDirectory (APPPATH . DS . 'vendor');
+//		file_exists(APPPATH . DS . 'vendor') and 
+//		static :: unlinkDirectory (APPPATH . DS . 'vendor');
 
-		file_exists(APPPATH . DS . 'composer.lock') and 
-		unlink (APPPATH . DS . 'composer.lock');
+//		file_exists(APPPATH . DS . 'composer.lock') and 
+//		unlink (APPPATH . DS . 'composer.lock');
 
 		$input  = new Symfony\Component\Console\Input\StringInput('update -n -o -d ' . str_replace('\\', '\\\\', APPPATH));
 		$output = new Symfony\Component\Console\Output\StreamOutput(fopen($composer_dir . DS . 'compile.log','w'));
@@ -411,7 +414,7 @@ trait Compilador
 
 		if (is_array($dato))
 		{
-			if (Helper :: isList ($dato, true) and isset($dato[0]))
+			if (static :: isList ($dato, true) and isset($dato[0]))
 			{ # Es lista con los números correlativos y comienza desde cero
 				$return = '[' . PHP_EOL;
 				foreach($dato as $v)
@@ -423,7 +426,7 @@ trait Compilador
 				return $return;
 			}
 
-			if (Helper :: isList ($dato))
+			if (static :: isList ($dato))
 			{ # Es lista con índices numéricos pero no seguidos
 				$return = '[' . PHP_EOL;
 				foreach($dato as $k => $v)
@@ -636,8 +639,11 @@ trait Compilador
 			}
 		}
 
-		if (count($CONTENT_META) === 0)
-			return;
+		// Incluir el reemplazador de nombres de los directorios base
+		// Incluir el buscador de la clase específica
+		
+//		if (count($CONTENT_META) === 0)
+//			return;
 
 		$funcs_file = APPPATH . DS . 'configs' . DS . 'functions.php';
 		@mkdir(dirname($funcs_file), 0777, true);

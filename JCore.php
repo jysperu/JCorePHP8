@@ -130,6 +130,13 @@ class JCore
 	public static $AUTOLOAD_PROCESSES_DIR = '/processes';
 
 	/**
+	 * $AUTOLOAD_DRIVERS_DIR
+	 * Aloja el directorio para el namespace `Process`
+	 * (Procesos internos)
+	 */
+	public static $AUTOLOAD_DRIVERS_DIR = '/drivers';
+
+	/**
 	 * $AUTOLOAD_NAMESPACES
 	 * Aloja múltiples namespaces y su directorio respectivo
 	 *

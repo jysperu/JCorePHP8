@@ -37,6 +37,8 @@ defined('cookie4_device') or define('cookie4_device', 'cdkdsp');
  * setUa(string):void			Establece  un USER-AGENT incluso si no es el detectado
  * detectRequestUa():string		Detecta el USER-AGENT del REQUEST
  *
+ * cleanInvisibleCharacter(string):string		Limpia los caractéres invisibles
+ *
  * Acción Por Defecto Filtro IP:
  * Es la acción que debe considerarse por defecto al filtrar una IP
  * Por defecto: "Sin Acción"
@@ -292,5 +294,32 @@ class XONK
 		}
 
 		return $user_agent;
+	}
+
+
+
+	//=== Funciones de STRING
+	public static function cleanInvisibleCharacter (string $str, bool $url_encoded = true)
+	{
+		$non_displayables = [];
+
+		// every control character except newline (dec 10),
+		// carriage return (dec 13) and horizontal tab (dec 09)
+		if ($url_encoded)
+		{
+			$non_displayables[] = '/%0[0-8bcef]/i';	// url encoded 00-08, 11, 12, 14, 15
+			$non_displayables[] = '/%1[0-9a-f]/i';	// url encoded 16-31
+			$non_displayables[] = '/%7f/i';	// url encoded 127
+		}
+
+		$non_displayables[] = '/[\x00-\x08\x0B\x0C\x0E-\x1F\x7F]+/S';	// 00-08, 11, 12, 14-31, 127
+
+		do
+		{
+			$str = preg_replace($non_displayables, '', $str, -1, $count);
+		}
+		while ($count);
+
+		return $str;
 	}
 }

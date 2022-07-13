@@ -14,6 +14,8 @@ use Structure\Base as BaseStructure;
 
 class APP extends JArray
 {
+	use IntanceAble;
+
 	/**
 	 * instance()
 	 * @static
@@ -89,9 +91,4 @@ class APP extends JArray
 	{
 		return static :: $_response_html_structure;
 	}
-}
-
-function APP ()
-{
-	return APP :: instance();
 }

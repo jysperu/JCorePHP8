@@ -29,14 +29,20 @@ class Valores
 		return ['A', 'E', 'I','O', 'U'];
 	}
 
-	public static function tildesEnMinuscula ():array
+	public static function tildesEnMinuscula ($inc_hard = false):array
 	{
-		return ['á', 'é', 'í', 'ó', 'ú', 'ñ'];
+		return array_merge(
+			['á', 'é', 'í', 'ó', 'ú', 'ñ'],
+			($inc_hard ? ['ä', 'ë', 'ï', 'ö', 'ü'] : [])
+		);
 	}
 
-	public static function tildesEnMayuscula ():array
+	public static function tildesEnMayuscula ($inc_hard = false):array
 	{
-		return ['Á', 'É', 'Í', 'Ó', 'Ú', 'Ñ'];
+		return array_merge(
+			['Á', 'É', 'Í', 'Ó', 'Ú', 'Ñ'],
+			($inc_hard ? ['Ä', 'Ë', 'Ï', 'Ö', 'Ü'] : [])
+		);
 	}
 
 	public static function numeros ():array
@@ -59,7 +65,7 @@ class Valores
 
 	public static function dias ():array
 	{
-		return ['Domingo', 'Lunes', 'Martes', 'Miercoles', 'Jueves', 'Viernes', 'Sabado'];
+		return ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sabado'];
 	}
 
 	public static function tab ():string

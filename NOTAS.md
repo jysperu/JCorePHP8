@@ -51,3 +51,13 @@
  *
  * Pueden haber casos en el que se requiera compilar mas directorios que los autoloads
  */
+
+
+
+
+pendiente strtomoney
+pendiente Driver\ErrorControlSaver\General por defecto guardador en archivo rotatorio
+pendiente cada ejecución debe un tener un try catch ej: un proceso su respectivo try catch para guardar el log de ejecución basado en un proceso
+pendiente filters and actions
+pendiente error control enmascarar los directorios
+pendiente 

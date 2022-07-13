@@ -1,10 +1,12 @@
 <?php
 namespace JCore\JPart;
 
-use Helper;
+use JCore\JPart\Helper as HelperTrait;
 
 class ComposerJSON 
 {
+	use HelperTrait;
+
 	protected $_config = [];
 
 	public function __construct (array $json = [])
@@ -53,44 +55,44 @@ class ComposerJSON
 				'config',            # object
 			] as $key)
 			{
-				if ( ! isset($json[$key]) or Helper::isEmpty($json[$key]))
+				if ( ! isset($json[$key]) or static ::isEmpty($json[$key]))
 					continue;
 
 				$val = $this -> _reparo_val_for($key, $json[$key]);
 
-				if (Helper::isEmpty($val))
+				if (static ::isEmpty($val))
 					continue;
 
 				$this -> _config[$key] = $val;
 			}
 		}
 
-		if (isset($json['keywords']) and ! Helper::isEmpty($json['keywords']))
+		if (isset($json['keywords']) and ! static ::isEmpty($json['keywords']))
 		{
 			$this -> addKeyword ($json['keywords']);
 		}
 
-		if (isset($json['license']) and ! Helper::isEmpty($json['license']))
+		if (isset($json['license']) and ! static ::isEmpty($json['license']))
 		{
 			$this -> addLicense ($json['license']);
 		}
 
-		if (isset($json['authors']) and ! Helper::isEmpty($json['authors']))
+		if (isset($json['authors']) and ! static ::isEmpty($json['authors']))
 		{
 			$this -> addAuthor ($json['authors']);
 		}
 
-		if (isset($json['funding']) and ! Helper::isEmpty($json['funding']))
+		if (isset($json['funding']) and ! static ::isEmpty($json['funding']))
 		{
 			$this -> addFunding ($json['funding']);
 		}
 
-		if (isset($json['require']) and ! Helper::isEmpty($json['require']))
+		if (isset($json['require']) and ! static ::isEmpty($json['require']))
 		{
 			$this -> addRequire ($json['require']);
 		}
 
-		if (isset($json['repositories']) and ! Helper::isEmpty($json['repositories']))
+		if (isset($json['repositories']) and ! static ::isEmpty($json['repositories']))
 		{
 			$this -> addRepository ($json['repositories']);
 		}
@@ -126,7 +128,7 @@ class ComposerJSON
 			$object = [];
 			foreach(['email', 'issues', 'forum', 'wiki', 'irc', 'source', 'docs', 'rss', 'chat'] as $object_key)
 			{
-				if (isset($val[$object_key]) and ! Helper::isEmpty($val[$object_key]))
+				if (isset($val[$object_key]) and ! static ::isEmpty($val[$object_key]))
 				{
 					$object[$object_key] = $val[$object_key];
 				}
@@ -140,7 +142,7 @@ class ComposerJSON
 			$object = [];
 			foreach(['name', 'email', 'homepage', 'role'] as $object_key)
 			{
-				if (isset($val[$object_key]) and ! Helper::isEmpty($val[$object_key]))
+				if (isset($val[$object_key]) and ! static ::isEmpty($val[$object_key]))
 				{
 					$object[$object_key] = $val[$object_key];
 				}
@@ -158,7 +160,7 @@ class ComposerJSON
 			$object = ['type' => 'other'];
 			foreach(['type', 'url'] as $object_key)
 			{
-				if (isset($val[$object_key]) and ! Helper::isEmpty($val[$object_key]))
+				if (isset($val[$object_key]) and ! static ::isEmpty($val[$object_key]))
 				{
 					$object[$object_key] = $val[$object_key];
 				}
@@ -174,7 +176,7 @@ class ComposerJSON
 		{
 			$val = (array) $val;
 
-			if ( ! isset($val['url']) or Helper::isEmpty($val['url']))
+			if ( ! isset($val['url']) or static ::isEmpty($val['url']))
 				return [];
 
 			return $val;
@@ -260,7 +262,7 @@ class ComposerJSON
 	{
 		$author = (array) $author;
 		
-		if(Helper :: isList($author))
+		if(static :: isList($author))
 		{
 			foreach($author as $str)
 			{
@@ -271,7 +273,7 @@ class ComposerJSON
 
 		$author = $this -> _reparo_val_for('authors', $author);
 
-		if (Helper::isEmpty($author))
+		if (static ::isEmpty($author))
 			return $this; ## No es un author valido
 
 		
@@ -312,7 +314,7 @@ class ComposerJSON
 	{
 		$funding = (array) $funding;
 		
-		if(Helper :: isList($funding))
+		if(static :: isList($funding))
 		{
 			foreach($funding as $str)
 			{
@@ -323,7 +325,7 @@ class ComposerJSON
 
 		$funding = $this -> _reparo_val_for('funding', $funding);
 
-		if (Helper::isEmpty($funding))
+		if (static ::isEmpty($funding))
 			return $this; ## No es un author valido
 
 		
@@ -357,7 +359,7 @@ class ComposerJSON
 	{
 		$require = (array) $require;
 		
-		if(Helper :: isList($require))
+		if(static :: isList($require))
 		{
 			foreach($require as $str)
 			{
@@ -390,7 +392,7 @@ class ComposerJSON
 	{
 		$repository = (array) $repository;
 		
-		if(Helper :: isList($repository))
+		if(static :: isList($repository))
 		{
 			foreach($repository as $str)
 			{
@@ -401,7 +403,7 @@ class ComposerJSON
 
 		$repository = $this -> _reparo_val_for('repositories', $repository);
 
-		if (Helper::isEmpty($repository))
+		if (static ::isEmpty($repository))
 			return $this; ## No es un author valido
 
 		

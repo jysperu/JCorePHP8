@@ -7,6 +7,11 @@
 namespace Helper;
 defined('APPPATH') or exit(0); // Acceso directo no autorizado
 
+use MatthiasMullie\Minify\JS  as MinifyJS;
+use MatthiasMullie\Minify\CSS as MinifyCSS;
+use Driver\Cache\Principal as CacheDriver;
+use Exception;
+
 class Compressor
 {
 	/**
@@ -27,36 +32,35 @@ class Compressor
 	/**
 	 * JS
 	 */
-	public static function JS (string $content, $arr = [])
+	public static function JS (string $content, $options = [])
 	{
-		$arr = array_merge([
-			'cache' => FALSE,
-			'cachetime' => NULL, 
-			'use_apiminifier' => FALSE,
-		], $arr);
-		extract($arr);
+		$options = array_merge([
+			'cache'           => false,
+			'cachetime'       => null, 
+			'use_apiminifier' => false,
+		], $options);
+		extract($options);
 
 		if (empty($content))
-		{
 			return $content;
-		}
 
 		if ($cache !== FALSE)
 		{
-			$app = APP();
 			$key = ($cache !== TRUE ? $cache : md5($content)) . '.js';
-			$Cache = $app->Cache($app::$_cache_nmsp_paginaassets);
-			$CacheItem = $Cache->getItem($key);
+			$Cache = CacheDriver :: for(CacheDriver :: FOR_ASSETS_JS);
+			$CItem = $Cache -> getItem($key);
 
-			if ($CacheItem->isHit())
-			{
-				return $CacheItem->get();
-			}
+			if ($CItem -> isHit())
+				return $CItem -> get();
 		}
 
 		try
 		{
-			$temp = (new MinifyJS($content))->minify();
+			$temp = (new MinifyJS($content)) -> minify();
+
+			if (empty($temp))
+				throw new Exception('Contenido Vacío');
+
 			$content = $temp;
 		}
 		catch (Exception $e)
@@ -79,66 +83,63 @@ class Compressor
 				]));
 
 				if (preg_match('/^\/\/ Error/i', $temp))
-				{
 					throw new Exception($temp);
-				}
 
 				if ($temp === FALSE or empty($temp))
-				{
 					throw new Exception('Error: No Content');
-				}
 
 				$content = $temp;
 			}
 		}
 		catch (Exception $e)
 		{
-			trigger_error('Se intentó Minificar el contenido JS: ' . PHP_EOL . PHP_EOL . 
-						  $content . PHP_EOL . PHP_EOL . 
-						  'Error Obtenido: ' . $e->getMessage(), E_USER_WARNING);
+			trigger_error(
+				'Se intentó Minificar el contenido JS: ' . PHP_EOL . PHP_EOL . 
+				$content . PHP_EOL . PHP_EOL . 
+				'Error Obtenido: ' . $e -> getMessage(), E_USER_WARNING);
 		}
 
-		if (isset($Cache) and isset($CacheItem))
+		if (isset($Cache) and isset($CItem))
 		{
-			$CacheItem->set($content);
-			$Cache->save($CacheItem);
+			$CItem -> set ($content);
+			$Cache -> save($CItem);
 		}
+
 		return $content;
 	}
 
 	/**
 	 * CSS
 	 */
-	public static function CSS (string $content = '', $arr = [])
+	public static function CSS (string $content, $options = [])
 	{
-		$arr = array_merge([
-			'cache' => FALSE,
-			'cachetime' => NULL, 
-			'use_apiminifier' => FALSE,
-		], $arr);
-		extract($arr);
+		$options = array_merge([
+			'cache'           => false,
+			'cachetime'       => null, 
+			'use_apiminifier' => false,
+		], $options);
+		extract($options);
 
 		if (empty($content))
-		{
 			return $content;
-		}
 
 		if ($cache !== FALSE)
 		{
-			$app = APP();
-			$key = ($cache !== TRUE ? $cache : md5($content)) . '.css';
-			$Cache = $app->Cache($app::$_cache_nmsp_paginaassets);
-			$CacheItem = $Cache->getItem($key);
+			$key = ($cache !== TRUE ? $cache : md5($content)) . '.js';
+			$Cache = CacheDriver :: for(CacheDriver :: FOR_ASSETS_JS);
+			$CItem = $Cache -> getItem($key);
 
-			if ($CacheItem->isHit())
-			{
-				return $CacheItem->get();
-			}
+			if ($CItem -> isHit())
+				return $CItem -> get();
 		}
 
 		try
 		{
-			$temp = (new MinifyCSS($content))->minify();
+			$temp = (new MinifyCSS($content)) -> minify();
+
+			if (empty($temp))
+				throw new Exception('Contenido Vacío');
+
 			$content = $temp;
 		}
 		catch (Exception $e)
@@ -148,7 +149,7 @@ class Compressor
 		{
 			if ($use_apiminifier)
 			{
-				static $uri = 'https://cssminifier.com/raw';
+				static $uri = 'https://www.toptal.com/developers/cssminifier/raw';
 
 				$temp = file_get_contents($uri, false, stream_context_create([
 					'http' => [
@@ -161,37 +162,35 @@ class Compressor
 				]));
 
 				if (preg_match('/^\/\/ Error/i', $temp))
-				{
 					throw new Exception($temp);
-				}
 
 				if ($temp === FALSE or empty($temp))
-				{
 					throw new Exception('Error: No Content');
-				}
 
 				$content = $temp;
 			}
 		}
 		catch (Exception $e)
 		{
-			trigger_error('Se intentó Minificar el contenido CSS: ' . PHP_EOL . PHP_EOL . 
-						  $content . PHP_EOL . PHP_EOL . 
-						  'Error Obtenido: ' . $e->getMessage(), E_USER_WARNING);
+			trigger_error(
+				'Se intentó Minificar el contenido CSS: ' . PHP_EOL . PHP_EOL . 
+				$content . PHP_EOL . PHP_EOL . 
+				'Error Obtenido: ' . $e->getMessage(), E_USER_WARNING);
 		}
 
-		if (isset($Cache) and isset($CacheItem))
+		if (isset($Cache) and isset($CItem))
 		{
-			$CacheItem->set($content);
-			$Cache->save($CacheItem);
+			$CItem -> set ($content);
+			$Cache -> save($CItem);
 		}
+
 		return $content;
 	}
 
 	/**
 	 * JSON
 	 */
-	public static function json_compressor ($content = '')
+	public static function json ($content)
 	{
 		if (empty($content))
 			return $content;

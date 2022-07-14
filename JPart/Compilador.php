@@ -252,7 +252,7 @@ trait Compilador
 		});
 	}
 
-	protected static function compileComposer (array $directories):void
+	protected static function compileComposer (array $directories)
 	{
 		$composer_dir = static :: getComposerDirectory ();
 		if (is_null($composer_dir))
@@ -293,6 +293,8 @@ trait Compilador
         $app -> run($input, $output);
 
 		static :: maintenance('<b>Compilando...</b><br>Comando composer ejecutado.', 5); # Máximo 5s
+
+		return $composer_json['name'];
 	}
 
 	protected static function getComposerDirectory ():string
@@ -554,7 +556,7 @@ trait Compilador
 						{
 							$content_part_lines = count(explode(PHP_EOL, $content_part));
 							$CONTENT_META[] = [
-								'file'  => $init_file,
+								'file'  => static::maskBaseDirectories($init_file),
 								'from'  => $CONTENT_lines,
 								'to'    => $CONTENT_lines + $content_part_lines - 1,
 								'lines' => $content_part_lines,
@@ -635,7 +637,7 @@ trait Compilador
 					{
 						$content_part_lines = count(explode(PHP_EOL, $content_part));
 						$CONTENT_META[] = [
-							'file'  => $funcs_file,
+							'file'  => static::maskBaseDirectories($funcs_file),
 							'from'  => $CONTENT_lines,
 							'to'    => $CONTENT_lines + $content_part_lines - 1,
 							'lines' => $content_part_lines,
@@ -649,6 +651,27 @@ trait Compilador
 		}
 
 		// Incluir el reemplazador de nombres de los directorios base
+		$_data = static :: getDirectoriesLabels();
+
+		$CONTENT.= 'if ( ! function_exists(\'mask_base_directories\'))' . PHP_EOL;
+		$CONTENT.= '{' . PHP_EOL;
+		$CONTENT.= '	function mask_base_directories ($str)' . PHP_EOL;
+		$CONTENT.= '	{' . PHP_EOL;
+		$CONTENT.= '		$_directories = ' . static::var_export(array_keys($_data), 3) . ';' . PHP_EOL;
+		$CONTENT.= '		$_labels      = ' . static::var_export(array_values($_data), 3) . ';' . PHP_EOL;
+		$CONTENT.= '' . PHP_EOL;
+		$CONTENT.= '		do' . PHP_EOL;
+		$CONTENT.= '		{' . PHP_EOL;
+		$CONTENT.= '			$str = str_replace($_directories, $_labels, $str, $count);' . PHP_EOL;
+		$CONTENT.= '		}' . PHP_EOL;
+		$CONTENT.= '		while($count);' . PHP_EOL;
+		$CONTENT.= '' . PHP_EOL;
+		$CONTENT.= '		return $str;' . PHP_EOL;
+		$CONTENT.= '	}' . PHP_EOL;
+		$CONTENT.= '}' . PHP_EOL;
+		$CONTENT.= '' . PHP_EOL;
+		$CONTENT.= '' . PHP_EOL;
+
 		// Incluir el buscador de la clase específica
 		
 //		if (count($CONTENT_META) === 0)
@@ -699,6 +722,7 @@ trait Compilador
 		$content.= PHP_EOL;
 
 		$content.= '/** Definiendo rutas del sistema (informativo) */' . PHP_EOL;
+		$content.= 'defined(\'APPNAME\')   or define(\'APPNAME\',   \'' . str_replace('\'', '\\\'', $json['APPNAME']) . '\');' . PHP_EOL;
 		$content.= 'defined(\'APPPATH\')   or define(\'APPPATH\',   __DIR__);' . PHP_EOL;
 		$content.= 'defined(\'HOMEPATH\')  or define(\'HOMEPATH\',  \'' . HOMEPATH . '\');' . PHP_EOL;
 		$content.= 'defined(\'ROOTPATH\')  or define(\'ROOTPATH\',  \'' . ROOTPATH . '\');' . PHP_EOL;

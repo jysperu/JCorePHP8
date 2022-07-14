@@ -266,7 +266,7 @@ class JCore
 		static :: compileFunctions ($directories_999_1);
 
 		//=== Compilar composer.json
-		static :: compileComposer ($directories_1_999);
+		$json['APPNAME'] = static :: compileComposer ($directories_1_999);
 
 		//=== Compilar index.php
 		static :: compileIndex ($json);

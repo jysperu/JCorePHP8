@@ -9,12 +9,11 @@ defined('APPPATH') or exit(0); // Acceso directo no autorizado
 /**
  * APP
  */
-
-use Structure\Base as BaseStructure;
-
 class APP extends JArray
 {
 	use IntanceAble;
+	use APP\Helper;
+	use APP\Response;
 
 	/**
 	 * _init()
@@ -27,11 +26,25 @@ class APP extends JArray
 		if (file_exists($file))
 			static :: $_config = require_once($file);
 
+		//=== Restaurar el buffer de salida a 1
+		while (ob_get_level())
+			ob_end_clean();
+
+		ob_start();
+
 		//=== load request
-		
+		register_shutdown_function('APP::_send_response_on_shutdown');
 
 		//=== comprobar si se requiere re-compilar
 		register_shutdown_function('APP::_check_updates_on_shutdown');
+	}
+
+	public static function _send_response_on_shutdown ()
+	{
+		print_array(static :: getResponseType());
+
+		action_apply('do_when_end');
+		action_apply('shutdown');
 	}
 
 	public static function _check_updates_on_shutdown ()
@@ -52,39 +65,5 @@ class APP extends JArray
 		catch (\Exception      $e){}
 		catch (\TypeError      $e){}
 		catch (\Error          $e){}
-	}
-
-	protected static $_config = [];
-
-	function getConfig (string $key):mixed
-	{
-		if ( ! isset(static :: $_config[$key]))
-			return null;
-
-		return static :: $_config[$key];
-	}
-
-	function setConfig (string $key, mixed $val, bool $replace = true):int
-	{
-		$isset = isset(static :: $_config[$key]);
-
-		if ($isset and ! $replace)
-			return 0;
-
-		static :: $_config[$key] = $val;
-
-		return $isset ? 2 : 1;
-	}
-
-	protected static $_response_html_structure;
-
-	function setResponseHtmlStructure (BaseStructure $instance):void
-	{
-		static :: $_response_html_structure = $instance;
-	}
-
-	function getResponseHtmlStructure ()
-	{
-		return static :: $_response_html_structure;
 	}
 }

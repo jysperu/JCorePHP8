@@ -12,14 +12,61 @@ class ErrorControl
 
 	const errors = E_ERROR | E_PARSE | E_COMPILE_ERROR | E_CORE_ERROR | E_USER_ERROR | E_CORE_WARNING | E_COMPILE_WARNING;
 
+	protected static $_listening = false;
+
+	protected static $_auto_logger = true;
+
+	protected static function _init ()
+	{
+		static $_initialized = false;
+
+		if ($_initialized)
+			return;
+
+		register_shutdown_function('ErrorControl::_handler_last_error_on_shutdown');
+	}
+
+	public static function setAutoLogger (bool $auto_logger)
+	{
+		static :: $_auto_logger = $auto_logger;
+	}
+
+	protected static $_orig_display_errors;
+	protected static $_orig_error_reporting;
+
+	public static function stop ()
+	{
+		static :: _init();
+
+		if ( ! static::$_listening)
+			return;
+
+		static::$_listening = false;
+
+		restore_error_handler    ();
+		restore_exception_handler();
+
+		@ini_set('display_errors', static :: $_orig_display_errors);
+		@error_reporting(static :: $_orig_error_reporting);
+	}
+
 	public static function listen ()
 	{
+		static :: _init();
+
+		if (static::$_listening)
+			return;
+
+		static::$_listening = true;
+
+		static :: $_orig_display_errors  = @ini_get('display_errors');
+		static :: $_orig_error_reporting = error_reporting();
+
 		@ini_set('display_errors', static :: display_errors);
 		@error_reporting(static :: error_reporting);
 
-		set_error_handler         ('ErrorControl::_handler_error'                 );
-		set_exception_handler     ('ErrorControl::_handler_exception'             );
-		register_shutdown_function('ErrorControl::_handler_last_error_on_shutdown');
+		set_error_handler    ('ErrorControl::_handler_error'    );
+		set_exception_handler('ErrorControl::_handler_exception');
 	}
 
 	/**
@@ -271,7 +318,8 @@ class ErrorControl
 		$is_error and
 		http_response_code(500);
 
-		static :: logger($message, $severity, $severity, [], $filepath, $line);
+		if (static :: $_auto_logger)
+			static :: logger($message, $severity, $severity, [], $filepath, $line);
 
 		if ($is_error)
 			exit(1);
@@ -279,7 +327,8 @@ class ErrorControl
 
 	public static function _handler_exception ($exception)
 	{
-		static :: logger($exception);
+		if (static :: $_auto_logger)
+			static :: logger($exception);
 
 		ISCOMMAND or
 		http_response_code(500);
@@ -289,6 +338,9 @@ class ErrorControl
 
 	public static function _handler_last_error_on_shutdown ()
 	{
+		if ( ! static::$_listening)
+			return;
+
 		$last_error = error_get_last();
 
 		if ( isset($last_error) && ($last_error['type'] & static :: errors))

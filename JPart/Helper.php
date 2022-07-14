@@ -64,4 +64,19 @@ trait Helper
 
 		return FALSE;
 	}
+
+	public static function maskBaseDirectories ($str)
+	{
+		$_data = static :: getDirectoriesLabels();
+		$_directories = array_keys($_data);
+		$_labels = array_values($_data);
+
+		do
+		{
+			$str = str_replace($_directories, $_labels, $str, $count);
+		}
+		while($count);
+
+		return $str;
+	}
 }

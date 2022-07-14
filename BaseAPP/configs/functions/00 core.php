@@ -37,3 +37,11 @@ if ( ! function_exists('use_theme'))
 		return use_structure($clase, $option);
 	}
 }
+
+if ( ! function_exists('force_exit'))
+{
+	function force_exit (int $status = null)
+	{
+		exit ($status);
+	}
+}

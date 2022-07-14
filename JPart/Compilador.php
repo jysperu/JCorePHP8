@@ -299,7 +299,7 @@ trait Compilador
 	{
 		$dir =  defined('COMPOSER_PATH') ?
 				COMPOSER_PATH : 
-				((defined('ROOTPATH') ? ROOTPATH : JCorePATH) . DS . 'Composer');
+				((defined('ROOTPATH') ? ROOTPATH : JCorePATH) . DS . '_composer');
 
 		$min = time() - (60 * 60 * 24 * 7 * 4 * 3); # 03 meses de antigüedad
 		if (file_exists($dir) and filemtime($dir) >= $min)
@@ -309,7 +309,8 @@ trait Compilador
 
 		static :: maintenance('<b>Compilando...</b><br>Descargar instalador de composer.', 120); # Máximo 120s
 
-		@mkdir($dir, 0777, true);
+		if ( ! file_exists($dir))
+			@mkdir($dir, 0777, true);
 
 		$installerURL  = 'https://getcomposer.org/installer';
 		$installerFile = $dir . DS . 'installer.php';
@@ -496,7 +497,11 @@ trait Compilador
 		$config_content.= 'return ' . static :: var_export($config) . ';' . PHP_EOL;
 
 		$config_file = APPPATH . DS . 'configs' . DS . 'config.php';
-		@mkdir(dirname($config_file), 0777, true);
+		$config_dir  = dirname($config_file);
+
+		if ( ! file_exists($config_dir))
+			@mkdir($config_dir, 0777, true);
+
 		file_put_contents($config_file, $config_content);
 	}
 
@@ -567,7 +572,11 @@ trait Compilador
 			return;
 
 		$init_file = APPPATH . DS . 'configs' . DS . 'init.php';
-		@mkdir(dirname($init_file), 0777, true);
+		$init_dir  = dirname($init_file);
+
+		if ( ! file_exists($init_dir))
+			@mkdir($init_dir, 0777, true);
+
 		file_put_contents($init_file, $CONTENT);
 		file_put_contents($init_file . '.json', json_encode($CONTENT_META, JSON_PRETTY_PRINT));
 	}
@@ -646,7 +655,11 @@ trait Compilador
 //			return;
 
 		$funcs_file = APPPATH . DS . 'configs' . DS . 'functions.php';
-		@mkdir(dirname($funcs_file), 0777, true);
+		$funcs_dir  = dirname($funcs_file);
+
+		if ( ! file_exists($funcs_dir))
+			@mkdir($funcs_dir, 0777, true);
+
 		file_put_contents($funcs_file, $CONTENT);
 		file_put_contents($funcs_file . '.json', json_encode($CONTENT_META, JSON_PRETTY_PRINT));
 	}
@@ -686,11 +699,12 @@ trait Compilador
 		$content.= PHP_EOL;
 
 		$content.= '/** Definiendo rutas del sistema (informativo) */' . PHP_EOL;
-		$content.= 'defined(\'HOMEPATH\') or define(\'HOMEPATH\', \'' . HOMEPATH . '\');' . PHP_EOL;
-		$content.= 'defined(\'ROOTPATH\') or define(\'ROOTPATH\', \'' . ROOTPATH . '\');' . PHP_EOL;
-		$content.= 'defined(\'COREPATH\') or define(\'COREPATH\', \'' . COREPATH . '\');' . PHP_EOL;
-		$content.= 'defined(\'SRCPATH\')  or define(\'SRCPATH\',  \'' . SRCPATH . '\');' . PHP_EOL;
-		$content.= 'defined(\'APPPATH\')  or define(\'APPPATH\',  __DIR__);' . PHP_EOL;
+		$content.= 'defined(\'APPPATH\')   or define(\'APPPATH\',   __DIR__);' . PHP_EOL;
+		$content.= 'defined(\'HOMEPATH\')  or define(\'HOMEPATH\',  \'' . HOMEPATH . '\');' . PHP_EOL;
+		$content.= 'defined(\'ROOTPATH\')  or define(\'ROOTPATH\',  \'' . ROOTPATH . '\');' . PHP_EOL;
+		$content.= 'defined(\'COREPATH\')  or define(\'COREPATH\',  \'' . COREPATH . '\');' . PHP_EOL;
+		$content.= 'defined(\'SRCPATH\')   or define(\'SRCPATH\',   \'' . SRCPATH . '\');' . PHP_EOL;
+		$content.= 'defined(\'JCorePATH\') or define(\'JCorePATH\', \'' . JCorePATH . '\');' . PHP_EOL;
 		$content.= PHP_EOL;
 
 
@@ -788,24 +802,6 @@ trait Compilador
 			$content.= 'new Process\\Authenticate ();' . PHP_EOL;
 			$content.= '' . PHP_EOL;
 		}
-
-		$content.= '' . PHP_EOL;
-		$content.= '' . PHP_EOL;
-		$content.= '' . PHP_EOL;
-		$content.= '' . PHP_EOL;
-		$content.= '' . PHP_EOL;
-		$content.= '' . PHP_EOL;
-		$content.= '' . PHP_EOL;
-		$content.= '' . PHP_EOL;
-
-		$debug = time() + 5;
-		$content.= '$diff = ' . (time() + 27) . ' - time();' . PHP_EOL;
-		$content.= 'if ($diff < 0)' . PHP_EOL;
-		$content.= '{' . PHP_EOL;
-		$content.= '	@unlink(__FILE__);' . PHP_EOL;
-		$content.= '	$diff = 0;' . PHP_EOL;
-		$content.= '}' . PHP_EOL;
-		$content.= 'echo \'<br><b>DEBUG</b>: Se borrará el archivo index.php para recompilar la aplicación.<br>\', __FILE__ . \'#\' . __LINE__, \'<br><small>Tiempo Restante: \', (string) $diff, \'s</small><script>setTimeout(function(){location.reload()}, \', ($diff * 1000 + 1), \');</script>\';' . PHP_EOL;
 
 		file_put_contents(APPPATH . DS . 'index.php', $content);
 	}

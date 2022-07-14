@@ -17,33 +17,6 @@ class APP extends JArray
 	use IntanceAble;
 
 	/**
-	 * instance()
-	 * @static
-	 * @return JCore
-	 */
-	public static function instance ():APP
-	{
-		static $_instance;
-
-		if ( ! isset($_instance))
-		{
-			$_instance = new static ();
-			$_instance -> _init();
-		}
-
-		return $_instance;
-	}
-
-	/**
-	 * __construct()
-	 * @protected
-	 */
-	protected function __construct ()
-	{
-		parent :: __construct ();
-	}
-
-	/**
 	 * _init()
 	 * @protected
 	 */
@@ -54,8 +27,31 @@ class APP extends JArray
 		if (file_exists($file))
 			static :: $_config = require_once($file);
 
-		//=== 
+		//=== load request
 		
+
+		//=== comprobar si se requiere re-compilar
+		register_shutdown_function('APP::_check_updates_on_shutdown');
+	}
+
+	public static function _check_updates_on_shutdown ()
+	{
+		try
+		{
+			if ( ! defined('JCorePATH'))
+				return;
+
+			require_once JCorePATH . DS . 'JCore.php';
+
+			if ( ! JCore::requiereCompilar())
+				return;
+
+			JCore::compile();
+		}
+		catch (\BasicException $e){}
+		catch (\Exception      $e){}
+		catch (\TypeError      $e){}
+		catch (\Error          $e){}
 	}
 
 	protected static $_config = [];

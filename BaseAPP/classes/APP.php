@@ -27,8 +27,7 @@ class APP extends JArray
 			static :: $_config = require_once($file);
 
 		//=== Restaurar el buffer de salida a 1
-		while (ob_get_level())
-			ob_end_clean();
+		static :: clearBuffer();
 
 		ob_start();
 
@@ -45,6 +44,9 @@ class APP extends JArray
 
 		action_apply('do_when_end');
 		action_apply('shutdown');
+
+		flush();
+		ob_end_flush();
 	}
 
 	public static function _check_updates_on_shutdown ()
@@ -61,7 +63,7 @@ class APP extends JArray
 
 			JCore::compile();
 		}
-		catch (\BasicException $e){}
+		catch (\MetaException $e){}
 		catch (\Exception      $e){}
 		catch (\TypeError      $e){}
 		catch (\Error          $e){}

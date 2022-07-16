@@ -26,6 +26,11 @@ class ErrorControl
 		register_shutdown_function('ErrorControl::_handler_last_error_on_shutdown');
 	}
 
+	public static function silence (bool $silencio = true)
+	{
+		static :: setAutoLogger ( ! $silencio);
+	}
+
 	public static function setAutoLogger (bool $auto_logger)
 	{
 		static :: $_auto_logger = $auto_logger;
@@ -73,7 +78,7 @@ class ErrorControl
 	 * logger()
 	 * Función que guarda los logs
 	 *
-	 * @param BasicException|Exception|TypeError|Error|string 	$message	El mensaje reportado
+	 * @param MetaException|Exception|TypeError|Error|string 	$message	El mensaje reportado
 	 * @param int|null 		$code		(Optional) El código del error
 	 * @param string|null	$severity	(Optional) La severidad del error
 	 * @param array|null 	$meta		(Optional) Los metas del error
@@ -131,14 +136,14 @@ class ErrorControl
 		$meta['microtime']       = microtime();
 		$meta['microtime_float'] = microtime(true);
 
-		if ($message instanceof BasicException)
+		if ($message instanceof MetaException)
 		{
 			$exception = $message;
 
 			$meta = array_merge($exception->getMeta(), $meta);
-			is_null($severity) and $severity = 'BasicException';
+			is_null($severity) and $severity = 'MetaException';
 			$meta['class'] = get_class($exception);
-			$meta['class_base'] = 'BasicException';
+			$meta['class_base'] = 'MetaException';
 		}
 		elseif ($message instanceof Exception)
 		{
@@ -250,7 +255,7 @@ class ErrorControl
 			$url = url('array');
 			$meta['url'] = $url;
 		}
-		catch (\BasicException $e){}
+		catch (\MetaException $e){}
 		catch (\Exception      $e){}
 		catch (\TypeError      $e){}
 		catch (\Error          $e){}
@@ -264,7 +269,7 @@ class ErrorControl
 			$ip_address = ip_address('array');
 			$meta['ip_address'] = $ip_address;
 		}
-		catch (\BasicException $e){}
+		catch (\MetaException $e){}
 		catch (\Exception      $e){}
 		catch (\TypeError      $e){}
 		catch (\Error          $e){}

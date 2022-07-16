@@ -370,8 +370,8 @@ if ( ! function_exists('build_url'))
 		if (in_array($port, [80, 443]))
 		{
 			## Son puertos webs que dependen del scheme
-			empty($scheme) and $scheme = $port === 80 ? 'http' : 'https';
-			$port = '';
+			$scheme = $port === 80 ? 'http' : 'https';
+			$port   = '';
 		}
 
 		empty($scheme)   or $scheme .= '://';
@@ -380,7 +380,7 @@ if ( ! function_exists('build_url'))
 		empty($query)    or $query   = '?' . $query;
 		empty($fragment) or $fragment= '#' . $fragment;
 
-		$pass     = ($user || $pass) ? "$pass@" : '';
+		$pass = ($user || $pass) ? ($pass . '@') : '';
 
 		return $scheme . $user . $pass . $host . $port . $path . $query . $fragment;
 	}
@@ -395,33 +395,32 @@ if ( ! function_exists('redirect'))
 	 */
 	function redirect($url, $query = NULL)
 	{
-		error_reporting(0);
+		$parsed = is_array($url) ? $url : parse_url($url);
 
-		is_array($url) and $url = build_url($url);
-		$parsed_url = parse_url($url);
+		isset($parsed['scheme']) or $parsed['scheme'] = url('scheme');
+		isset($parsed['path'])   or $parsed['path']   = '/';
 
-		isset($parsed_url['scheme']) or $parsed_url['scheme'] = url('scheme');
-		isset($parsed_url['path']) or $parsed_url['path'] = '/';
-		if ( ! isset($parsed_url['host']))
+		if ( ! isset($parsed['host']))
 		{
-			$parsed_url['host'] = url('host');
-			$parsed_url['path'] = url('srvpublic_path') . '/' . ltrim($parsed_url['path'], '/');
+			$parsed['host'] = url('host');
+			$parsed['path'] = url('srvpublic_path') . '/' . ltrim($parsed['path'], '/');
 		}
 
 		if ( ! is_null($query))
 		{
-			isset($parsed_url['query'])    or $parsed_url['query']  = [];
-			is_array($parsed_url['query']) or $parsed_url['query']  = parse_str($parsed_url['query']);
+			isset($parsed['query'])    or $parsed['query']  = [];
+			is_array($parsed['query']) or parse_str($parsed['query'], $parsed['query']);
 
-			$parsed_url['query'] = array_merge($parsed_url['query'], $query);
+			$parsed['query'] = array_merge($parsed['query'], $query);
 		}
 
-		$url = build_url ($parsed_url);
+		$url = build_url ($parsed);
 
-		APP() -> GetAndClear_BufferContent(); // El contenido no será reportado como error
+		APP :: clearBuffer();      ## limpiar el buffer de salida
+		ErrorControl :: silence(); ## no se reportará cualquier error producido automáticamente
 
 		header('Location: ' . $url) or die('<script>location.replace("' . $url . '");</script>');
-		die();
+		exit;
 	}
 }
 
@@ -533,12 +532,8 @@ if ( ! function_exists('http_code'))
 
 if ( ! function_exists('force_exit'))
 {
-	/**
-	 * force_exit()
-	 */
-	function force_exit ($status = null)
+	function force_exit (int $status = null)
 	{
-		exit($status);
+		exit ($status);
 	}
 }
-

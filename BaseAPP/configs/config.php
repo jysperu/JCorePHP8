@@ -23,4 +23,4 @@ $config['timezone'] = 'America/Lima';
  *
  * @global
  */
-$config['lang'] = NULL;
+$config['lang'] = 'es_PE';

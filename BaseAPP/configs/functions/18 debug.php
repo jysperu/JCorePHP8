@@ -253,7 +253,7 @@ if ( ! function_exists('logger'))
 	 * logger()
 	 * Función que guarda los logs
 	 *
-	 * @param BasicException|Exception|TypeError|Error|string 	$message	El mensaje reportado
+	 * @param MetaException|Exception|TypeError|Error|string 	$message	El mensaje reportado
 	 * @param int|null 		$code		(Optional) El código del error
 	 * @param string|null	$severity	(Optional) La severidad del error
 	 * @param array|null 	$meta		(Optional) Los metas del error

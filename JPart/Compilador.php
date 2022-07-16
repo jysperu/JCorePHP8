@@ -193,12 +193,13 @@ trait Compilador
 		static :: maintenance('<b>Compilando...</b><br>Copiando archivos al directorio compilado.', 60); # Máximo 60s
 
 		$directories_with_files = [];
-		$classes_directory = DS . 'classes';
+		$classes_directory  = DS . 'classes';
+		$snippets_directory = DS . 'snippets';
 
 		//=== Estableciendo los directorios a copiar (Todos deben tener el slash al inicio pero no al final)
 		$directories_to_copy = array_unique( array_merge(
 			$AUTOLOAD_NAMESPACES_dirs,
-			[$classes_directory],
+			[$classes_directory, $snippets_directory],
 			$COMPILER_EXTRA_DIRS
 		) );
 
@@ -554,13 +555,17 @@ trait Compilador
 
 						if ( ! empty($content_part))
 						{
+							$CONTENT_lines+=2; ## Por lo que se añadirá el comentario del archivo
+
 							$content_part_lines = count(explode(PHP_EOL, $content_part));
-							$CONTENT_META[] = [
+							$CONTENT_META[] = $meta = [
 								'file'  => static::maskBaseDirectories($init_file),
 								'from'  => $CONTENT_lines,
 								'to'    => $CONTENT_lines + $content_part_lines - 1,
 								'lines' => $content_part_lines,
 							];
+
+							$CONTENT.= '/**** ' . $meta['file'] . ' # ' . str_pad($meta['lines'], 4, '0', STR_PAD_LEFT) . ' línea' . ($meta['lines'] > 1 ? 's' : '') . ' @ ' . str_pad($meta['from'], 4, '0', STR_PAD_LEFT) . ' - ' . str_pad($meta['to'], 4, '0', STR_PAD_LEFT) . ' ****/' . PHP_EOL . PHP_EOL;
 
 							$CONTENT.= $content_part . PHP_EOL . PHP_EOL;
 							$CONTENT_lines += $content_part_lines + 1;
@@ -579,7 +584,7 @@ trait Compilador
 		if ( ! file_exists($init_dir))
 			@mkdir($init_dir, 0777, true);
 
-		file_put_contents($init_file, $CONTENT);
+		file_put_contents($init_file, trim($CONTENT));
 		file_put_contents($init_file . '.json', json_encode($CONTENT_META, JSON_PRETTY_PRINT));
 	}
 
@@ -635,13 +640,17 @@ trait Compilador
 
 					if ( ! empty($content_part))
 					{
+						$CONTENT_lines+=2; ## Por lo que se añadirá el comentario del archivo
+
 						$content_part_lines = count(explode(PHP_EOL, $content_part));
-						$CONTENT_META[] = [
+						$CONTENT_META[] = $meta = [
 							'file'  => static::maskBaseDirectories($funcs_file),
 							'from'  => $CONTENT_lines,
 							'to'    => $CONTENT_lines + $content_part_lines - 1,
 							'lines' => $content_part_lines,
 						];
+
+						$CONTENT.= '/**** ' . $meta['file'] . ' # ' . str_pad($meta['lines'], 4, '0', STR_PAD_LEFT) . ' línea' . ($meta['lines'] > 1 ? 's' : '') . ' @ ' . str_pad($meta['from'], 4, '0', STR_PAD_LEFT) . ' - ' . str_pad($meta['to'], 4, '0', STR_PAD_LEFT) . ' ****/' . PHP_EOL . PHP_EOL;
 
 						$CONTENT.= $content_part . PHP_EOL . PHP_EOL;
 						$CONTENT_lines += $content_part_lines + 1;
@@ -652,6 +661,9 @@ trait Compilador
 
 		// Incluir el reemplazador de nombres de los directorios base
 		$_data = static :: getDirectoriesLabels();
+		$_data[APPPATH] = 'APPPATH';
+
+		$CONTENT.= '/**** Específicos ****/' . PHP_EOL . PHP_EOL;
 
 		$CONTENT.= 'if ( ! function_exists(\'mask_base_directories\'))' . PHP_EOL;
 		$CONTENT.= '{' . PHP_EOL;
@@ -683,7 +695,7 @@ trait Compilador
 		if ( ! file_exists($funcs_dir))
 			@mkdir($funcs_dir, 0777, true);
 
-		file_put_contents($funcs_file, $CONTENT);
+		file_put_contents($funcs_file, trim($CONTENT));
 		file_put_contents($funcs_file . '.json', json_encode($CONTENT_META, JSON_PRETTY_PRINT));
 	}
 

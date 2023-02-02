@@ -23,7 +23,7 @@ defined('execution_start_memory') or define('execution_start_memory', memory_get
 
 
 /** Corrigiendo directorio base */
-chdir(__DIR__);
+chdir(APPPATH);
 
 
 /** Modo mantenimiento */

@@ -3,7 +3,7 @@
  * autoload.modules.php
  * @filesource
  */
-defined('APPPATH') or exit(0); ## Acceso directo no autorizado
+defined('APPPATH') or die('APPPATH no definido');
 
 
 /** Variables base */

@@ -3,16 +3,16 @@
     "description": "Núcleo/Framework ligero para PHP8+",
     "type": "library",
     "license": "GPL-3.0-or-later",
+    "autoload": {
+        "files":[
+            "JCoreModules.php"
+        ]
+    },
     "authors": [
         {
             "name": "JYS Perú"
         }
     ],
-    "autoloads":{
-        "files":[
-            "APP.php"
-        ]
-    },
     "require": {
         "symfony/cache": "^6.2",
         "symfony/intl": "^6.2",

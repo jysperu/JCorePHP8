@@ -23,20 +23,6 @@ require_once 'vendor/autoload.php';
 return APP :: process ();
 ```
 
-#### — Descargando los archivos
-
-*Paso 01.-* [Descargar la librería](https://github.com/jysperu/JCorePHP8/releases/latest/) y descomprimirlo en la carpeta pública
-
-*Paso 02.-* Añadir el archivo `index.php`
-
-```php
-<?php
-define ('APPPATH',   __DIR__);
-define ('JCorePATH', APPPATH);
-require_once JCorePATH . '/JCoreModules.php';
-return APP :: process ();
-```
-
 ## Configuración del Servidor para las URLs amigables
 
 #### — Apache

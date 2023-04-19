@@ -13,8 +13,11 @@ defined('BS') or define ('BS', '\\');
 
 /** Variables de directorios */
 defined('JCorePATH') or define('JCorePATH', __DIR__);
-defined('ROOTPATH') or define('ROOTPATH', APPPATH);
-defined('HOMEPATH') or define('HOMEPATH', APPPATH); # Ruta Pública
+defined('ROOTPATH')  or define('ROOTPATH',  APPPATH);
+defined('HOMEPATH')  or define('HOMEPATH',  APPPATH);
+
+/** Directorio de cache compartida */
+defined('CACHEPATH') or define('CACHEPATH', APPPATH .DS. 'cache');
 
 
 /** Time & Memory (Execution) */
@@ -38,58 +41,20 @@ if (function_exists('JCoreInit'))
 	JCoreInit ();
 
 
-/** Recorrer todos los directorios de módulos para cargar el archivo load.php y con ello cargar nuevos submódulos */
-
-//=== Agregar directorios base
+/** Agregar directorios BASE */
 JCoreModules :: addDirectory(APPPATH, 999, 'APPPATH');
 JCoreModules :: addDirectory(JCorePATH, 0, 'JCorePATH');
 
-$revisados = [];
+/** Leer todos los directorios para establecer */
+JCoreModules :: loadDirectories();
 
-do
-{
-	$procesados  = 0;
-	$directories = JCoreModules :: getDirectories ();
-
-	foreach ($directories as $directory)
-	{
-		if (in_array($directory, $revisados))
-			continue; # Ya ha sido revisado
-
-		$revisados[] = $directory;
-
-		$vendor      = $directory . DS . 'vendor' . DS . 'autoload.php';
-		if (file_exists($vendor))
-			@include $vendor;
-
-		$load_php    = $directory . DS . 'load.php';
-		if ( ! file_exists($load_php))
-			continue; # No hay archivo load.php en el directorio
-
-		try
-		{
-			require_once $load_php;
-		}
-		catch (Exception $e)
-		{}
-		finally
-		{
-			$procesados++;
-		}
-	}
-}
-while($procesados > 0);
-
-unset($procesados, $revisados);
-
+$modules_directories = JCoreModules :: getDirectories ();
 
 /** Registrar el autoload de la aplicación */
-spl_autoload_register(function(string $class){
+spl_autoload_register(function(string $class) use ($modules_directories) {
 	$class = trim($class, BS);
 	$parts = explode(BS, $class);
 	$nbase = $parts[0];
-
-	$directories = JCoreModules :: getDirectories ();
 
 	/** Buscar en los namespaces definidos */
 	$namespaces  = JCoreModules :: getAutoloadsNamespace ();
@@ -100,7 +65,7 @@ spl_autoload_register(function(string $class){
 		array_shift($parts); # Quitar el namespace base
 
 		$filename = null;
-		foreach ($directories as $directory)
+		foreach ($modules_directories as $directory)
 		{
 			$filename = $directory . $namespace_directory  . DS . implode(DS, $parts) . '.php';
 			if (file_exists($filename))
@@ -118,7 +83,7 @@ spl_autoload_register(function(string $class){
 	$namesdirs = JCoreModules :: getAutoloadsDirectories ();
 
 	$filename = null;
-	foreach ($directories as $directory)
+	foreach ($modules_directories as $directory)
 	{
 		foreach ($namesdirs as $namedir)
 		{
@@ -132,6 +97,50 @@ spl_autoload_register(function(string $class){
 	if ( ! is_null($filename))
 		require_once $filename;
 }, true, true);
+
+/** Proteger el REQUEST de todo posible ataque */
+XONK :: protect();
+
+/** Escuchar todos los errores generados para poder gestionarlos y corregirlos */
+ErrorControl :: listen();
+
+/** Leer el `vendor/autoload.php` */
+foreach ($modules_directories as $directory)
+	if ($file = $directory . DS . 'vendor' . DS . 'autoload.php' and file_exists($file))
+		require_once $file;
+
+/** Leer el `configs/functions/*.php` */
+foreach ($modules_directories as $directory)
+{
+	$files = glob($directory . DS . 'configs' . DS . 'functions' . DS . '*.php');
+	foreach ($files as $file)
+		require_once $file;
+}
+
+/** Instanciar APP */
+APP :: instance();
+
+
+/** Registrar el punto de inicio */
+BenchMark :: registerGlobalPoint();
+
+
+/** Carga las validaciones asíncronas */
+XONK :: prepareAsyncValidations();
+
+
+/** Leer el `configs/init.php` */
+foreach ($modules_directories as $directory)
+	if ($file = $directory . DS . 'configs' . DS . 'init.php' and file_exists($file))
+		require_once $file;
+
+
+/** Ejecutar las validaciones de autenticación */
+foreach ($modules_directories as $directory)
+	if ($file = $directory . DS . 'configs' . DS . 'auth.php' and file_exists($file))
+		require_once $file;
+
+APP :: $PREREQUESTS_CLASSES = array_keys(JCoreModules :: $AUTOLOAD_ROUTES);
 
 
 /**
@@ -287,6 +296,52 @@ class JCoreModules
 	//=================================================================================//
 	//==== FUNCIONES - Gestión de Directorios Fuente                              =====//
 	//=================================================================================//
+
+	/** loadDirectories()
+	 */
+	public static function loadDirectories ()
+	{
+		static $_loaded = false;
+
+		if ($_loaded)
+			return $this;
+		$_loaded = true;
+
+
+		$revisados = [];
+
+		do
+		{
+			$procesados  = 0;
+			$directories = JCoreModules :: getDirectories ();
+
+			foreach ($directories as $directory)
+			{
+				if (in_array($directory, $revisados))
+					continue; # Ya ha sido revisado
+
+				$revisados[] = $directory;
+
+				$load_php    = $directory . DS . 'load.php';
+				if ( ! file_exists($load_php))
+					continue; # No hay archivo load.php en el directorio
+
+				try
+				{
+					require_once $load_php;
+				}
+				catch (Exception $e)
+				{}
+				finally
+				{
+					$procesados++;
+				}
+			}
+		}
+		while($procesados > 0);
+
+		unset($procesados, $revisados);
+	}
 
 	/**
 	 * addDirectory ()
@@ -487,5 +542,41 @@ class JCoreModules
 		}
 
 		return $ruta;
+	}
+
+	public static function getFilesOnDir (string $directorio):array
+	{
+		if ( ! file_exists($directorio) or ! is_dir($directorio))
+			return [];
+
+		$data = scandir($directorio);
+		$data = array_filter($data, function($o){
+			return ! in_array($o, ['.', '..']);
+		});
+		$data = array_values($data);
+
+		$data = array_map(function($o) use ($directorio) {
+			return $directorio . DS . $o;
+		}, $data);
+
+		$files = array_filter($data, function ($o) {
+			return ! is_dir($o);
+		});
+		$files = array_values($files);
+
+		$dirs = array_filter($data, function ($o) {
+			return is_dir($o);
+		});
+		$dirs = array_values($dirs);
+
+		foreach ($dirs as $dir)
+		{
+			$files = array_merge($files, static :: getFilesOnDir($dir));
+		}
+
+		$files = array_unique($files);
+		$files = array_values($files);
+
+		return $files;
 	}
 }

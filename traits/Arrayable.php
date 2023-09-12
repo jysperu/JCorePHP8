@@ -1,13 +1,14 @@
 <?php
 /**
- * Arrayable.php
+ * traits/Arrayable.php
  * @filesource
  */
 
-defined('APPPATH') or exit(0); // Acceso directo no autorizado
+defined('APPPATH') or exit(0); ## Acceso directo no autorizado
 
 /**
  * Arrayable
+ * La clase asociada puede simular ser una variable array y a la vez poder ejecutar funciones de clase
  */
 trait Arrayable
 {
@@ -15,8 +16,11 @@ trait Arrayable
 
 	/**
 	 * first ()
+	 * Permite retornar la primera variable encontrada dentor de los datos
+	 *
+	 * > Retorna NULL en caso de no encontrar algún elemento
 	 */
-	public function first ():mixed
+	public function first (): mixed
 	{
 		if (isset ($this[0]))
 			return $this[0];
@@ -33,8 +37,11 @@ trait Arrayable
 
 	/**
 	 * clear ()
+	 * Permite limpiar todos los elementos que contiene la clase
+	 *
+	 * @return Arrayable
 	 */
-	public function clear ():Arrayable
+	public function clear (): static
 	{
 		$keys = array_keys ((array) $this);
 
@@ -49,6 +56,8 @@ trait Arrayable
 
 	/**
 	 * _detect_index ()
+	 *
+	 * Función que permite detectar un código 
 	 */
 	protected function _detect_index (string $index):string
 	{

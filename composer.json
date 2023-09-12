@@ -1,11 +1,11 @@
 {
     "name": "jysperu/jcore",
-    "description": "Núcleo/Framework ligero para PHP8+",
+    "description": "Núcleo para aplicaciones en PHP8+",
     "type": "library",
     "license": "GPL-3.0-or-later",
     "autoload": {
         "files":[
-            "JCoreModules.php"
+            "autoload.php"
         ]
     },
     "authors": [
@@ -14,6 +14,7 @@
         }
     ],
     "require": {
+        "php": "^8.1",
         "symfony/cache": "^6.2",
         "symfony/intl": "^6.2",
         "symfony/http-client": "^6.2",

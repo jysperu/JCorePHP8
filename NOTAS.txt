@@ -1,0 +1,19 @@
+configs/config.php
+functions/*.php
+
+- CACHE
+- BASE DATOS (connections)
+- SESION
+- XONK
+- errorlog
+- querys
+
+- ObjRoute, ReRoute, AlwRoute
+- PreRequest
+- Request, Response
+
+- Error404
+- MainResponse
+
+
+- AWS S3
